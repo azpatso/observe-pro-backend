@@ -18,14 +18,9 @@ app = Flask(__name__)
 
 CORS(
     app,
-    resources={r"/api/*": {
-        "origins": [
-            "capacitor://localhost",
-            "http://localhost",
-            "https://localhost",
-        ]
-    }}
+    resources={r"/api/*": {"origins": "*"}}
 )
+
 
 app.register_blueprint(auth_bp, url_prefix="/api/auth")
 
