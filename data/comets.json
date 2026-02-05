@@ -1,0 +1,116 @@
+[
+  {
+    "id": "comet-c2024-e1-wierzchos-2026",
+    "type": "comet",
+    "title": "Comet C/2024 E1 (Wierzchos)",
+    "start": "2026-01-01T00:00:00Z",
+    "end": "2026-02-20T23:59:59Z",
+    "visibility": "global",
+    "confidence": "medium",
+    "source": "Astronomical predictions",
+    "tags": ["comet", "wierzchos", "telescope_required"],
+
+    "observation": "binoculars_or_telescope",
+    "peak": {
+      "start": "2026-01-20T00:00:00Z",
+      "end": "2026-02-05T23:59:59Z"
+    },
+    "closest_approach": "2026-02-17",
+    "notes": "Best in late January. Expected magnitude around 8; too faint for naked eye, but a good binocular target under dark skies."
+  },
+
+  {
+    "id": "comet-24p-schaumasse-2026",
+    "type": "comet",
+    "title": "Comet 24P/Schaumasse",
+    "start": "2026-01-01T00:00:00Z",
+    "end": "2026-02-15T23:59:59Z",
+    "visibility": "global",
+    "confidence": "medium",
+    "source": "Astronomical predictions",
+    "tags": ["comet", "schaumasse", "telescope_required"],
+
+    "observation": "telescope",
+    "peak": {
+      "start": "2026-01-03T00:00:00Z",
+      "end": "2026-01-12T23:59:59Z"
+    },
+    "closest_approach": "2026-01-04",
+    "notes": "A faint periodic comet peaking in early January. Expected around magnitude 10, requiring a small telescope or smart telescope."
+  },
+
+  {
+    "id": "comet-88p-howell-2026",
+    "type": "comet",
+    "title": "Comet 88P/Howell",
+    "start": "2026-02-01T00:00:00Z",
+    "end": "2026-04-10T23:59:59Z",
+    "visibility": "global",
+    "confidence": "medium",
+    "source": "Astronomical predictions",
+    "tags": ["comet", "howell", "telescope_required"],
+
+    "observation": "telescope",
+    "peak": {
+      "start": "2026-03-01T00:00:00Z",
+      "end": "2026-03-25T23:59:59Z"
+    },
+    "closest_approach": "2026-03-15",
+    "notes": "Gradual brightening through March. Remains faint and best suited for telescope observers."
+  },
+
+  {
+    "id": "comet-c2025-r3-panstarrs-2026",
+    "type": "comet",
+    "title": "Comet C/2025 R3 (PanSTARRS)",
+    "start": "2026-03-25T00:00:00Z",
+    "end": "2026-05-10T23:59:59Z",
+    "visibility": "global",
+    "confidence": "medium",
+    "source": "Astronomical predictions",
+    "tags": ["comet", "panstarrs", "naked_eye_possible", "binoculars_likely"],
+
+    "observation": "possible_naked_eye",
+    "peak": {
+      "start": "2026-04-15T00:00:00Z",
+      "end": "2026-05-01T23:59:59Z"
+    },
+    "closest_approach": "2026-04-26",
+    "notes": "The wildcard comet of 2026. Brightness predictions vary widely; binoculars are strongly recommended, with naked-eye visibility possible if it brightens significantly."
+  },
+
+  {
+    "id": "comet-3i-atlas-2026",
+    "type": "comet",
+    "title": "Interstellar Comet 3I/ATLAS",
+    "start": "2026-01-01T00:00:00Z",
+    "end": "2026-12-31T23:59:59Z",
+    "visibility": "global",
+    "confidence": "high",
+    "source": "Astronomical observations",
+    "tags": ["comet", "interstellar", "atlas", "telescope_required"],
+
+    "observation": "telescope",
+    "notes": "An interstellar object passing through the Solar System in 2026. Observed around magnitude 11–12, making it a telescope-only target. Of high scientific interest."
+  },
+
+  {
+    "id": "comet-10p-tempel-2-2026",
+    "type": "comet",
+    "title": "Comet 10P/Tempel 2",
+    "start": "2026-07-01T00:00:00Z",
+    "end": "2026-09-01T23:59:59Z",
+    "visibility": "global",
+    "confidence": "medium",
+    "source": "Astronomical predictions",
+    "tags": ["comet", "tempel_2", "binoculars_or_telescope"],
+
+    "observation": "binoculars_or_telescope",
+    "peak": {
+      "start": "2026-07-15T00:00:00Z",
+      "end": "2026-08-15T23:59:59Z"
+    },
+    "closest_approach": "2026-07-25",
+    "notes": "A well-known periodic comet returning in summer 2026. Best observed in July and August with binoculars or a small telescope."
+  }
+]

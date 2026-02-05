@@ -1,0 +1,112 @@
+[
+  {
+    "id": "lyrids-2026",
+    "name": "Lyrids",
+    "peak": "2026-04-22",
+    "start": "2026-04-16",
+    "end": "2026-04-25",
+    "best_time": "After midnight",
+    "visibility": "global",
+    "confidence": "high",
+    "source": "IMO"
+  },
+  {
+    "id": "eta-aquariids-2026",
+    "name": "Eta Aquariids",
+    "peak": "2026-05-06",
+    "start": "2026-04-19",
+    "end": "2026-05-28",
+    "best_time": "Pre-dawn",
+    "visibility": "Southern Hemisphere favored",
+    "confidence": "high",
+    "source": "IMO"
+  },
+  {
+    "id": "southern-delta-aquariids-2026",
+    "name": "Southern Delta Aquariids",
+    "peak": "2026-07-30",
+    "start": "2026-07-12",
+    "end": "2026-08-23",
+    "best_time": "After midnight",
+    "visibility": "Southern Hemisphere favored",
+    "confidence": "high",
+    "source": "IMO"
+  },
+  {
+    "id": "perseids-2026",
+    "name": "Perseids",
+    "peak": "2026-08-12",
+    "start": "2026-07-17",
+    "end": "2026-08-24",
+    "best_time": "After midnight",
+    "visibility": "Northern Hemisphere favored",
+    "confidence": "high",
+    "source": "IMO"
+  },
+  {
+    "id": "orionids-2026",
+    "name": "Orionids",
+    "peak": "2026-10-21",
+    "start": "2026-10-02",
+    "end": "2026-11-07",
+    "best_time": "After midnight",
+    "visibility": "global",
+    "confidence": "high",
+    "source": "IMO"
+  },
+  {
+    "id": "southern-taurids-2026",
+    "name": "Southern Taurids",
+    "peak": "2026-11-05",
+    "start": "2026-09-23",
+    "end": "2026-12-02",
+    "best_time": "Late night",
+    "visibility": "Southern Hemisphere favored",
+    "confidence": "high",
+    "source": "IMO"
+  },
+  {
+    "id": "northern-taurids-2026",
+    "name": "Northern Taurids",
+    "peak": "2026-11-12",
+    "start": "2026-10-13",
+    "end": "2026-12-02",
+    "best_time": "Late night",
+    "visibility": "Northern Hemisphere favored",
+    "confidence": "high",
+    "source": "IMO"
+  },
+  {
+    "id": "leonids-2026",
+    "name": "Leonids",
+    "peak": "2026-11-17",
+    "start": "2026-11-06",
+    "end": "2026-11-30",
+    "best_time": "Pre-dawn",
+    "visibility": "global",
+    "confidence": "high",
+    "source": "IMO"
+  },
+  {
+    "id": "geminids-2026",
+    "name": "Geminids",
+    "peak": "2026-12-14",
+    "start": "2026-12-04",
+    "end": "2026-12-17",
+    "best_time": "After midnight",
+    "visibility": "global",
+    "confidence": "high",
+    "source": "IMO"
+  },
+  {
+    "id": "ursids-2026",
+    "name": "Ursids",
+    "peak": "2026-12-22",
+    "start": "2026-12-17",
+    "end": "2026-12-26",
+    "best_time": "Late night",
+    "visibility": "Northern Hemisphere favored",
+    "confidence": "medium",
+    "source": "IMO"
+  }
+]

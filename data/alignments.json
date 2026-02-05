@@ -1,0 +1,147 @@
+[
+  {
+    "id": "align-2026-02-16-saturn-neptune",
+    "type": "alignment",
+    "title": "Saturn–Neptune Conjunction",
+    "start": "2026-02-16T00:00:00Z",
+    "end": "2026-02-16T23:59:59Z",
+    "visibility": "global",
+    "confidence": "high",
+    "source": "In-The-Sky.org",
+    "description": "Saturn and Neptune appear close together in the evening sky. Saturn is easily visible to the naked eye, but Neptune is very faint and requires binoculars or a telescope.",
+    "tags": ["conjunction", "planets", "evening", "telescope_required"]
+  },
+  {
+    "id": "align-2026-02-18-moon-mercury",
+    "type": "alignment",
+    "title": "Crescent Moon near Mercury",
+    "start": "2026-02-18T00:00:00Z",
+    "end": "2026-02-18T23:59:59Z",
+    "visibility": "global",
+    "confidence": "medium",
+    "source": "Sky & Telescope",
+    "description": "A thin crescent Moon appears close to Mercury low in the evening twilight. A clear western horizon is essential; binoculars may help.",
+    "tags": ["moon", "mercury", "evening", "naked_eye", "binoculars_recommended"]
+  },
+  {
+    "id": "align-2026-02-19-moon-saturn",
+    "type": "alignment",
+    "title": "Moon close to Saturn",
+    "start": "2026-02-19T00:00:00Z",
+    "end": "2026-02-20T23:59:59Z",
+    "visibility": "global",
+    "confidence": "high",
+    "source": "Sky & Telescope",
+    "description": "The crescent Moon passes close to Saturn in the evening sky, creating a striking and easy naked-eye pairing.",
+    "tags": ["moon", "saturn", "evening", "naked_eye"]
+  },
+  {
+    "id": "align-2026-02-26-venus-mercury",
+    "type": "alignment",
+    "title": "Venus–Mercury Conjunction (Low Twilight)",
+    "start": "2026-02-26T00:00:00Z",
+    "end": "2026-02-26T23:59:59Z",
+    "visibility": "global",
+    "confidence": "medium",
+    "source": "In-The-Sky.org",
+    "description": "Venus and Mercury appear close together very low in the twilight sky. Visibility depends strongly on latitude and horizon conditions.",
+    "tags": ["conjunction", "planets", "evening", "naked_eye", "binoculars_recommended"]
+  },
+  {
+    "id": "align-2026-02-28-planetary-parade",
+    "type": "alignment",
+    "title": "Six-Planet Morning Line-up",
+    "start": "2026-02-28T00:00:00Z",
+    "end": "2026-02-28T23:59:59Z",
+    "visibility": "global",
+    "confidence": "medium",
+    "source": "Compiled from NASA, In-The-Sky.org, Star Walk",
+    "description": "Several planets — including Mercury, Venus, Mars, Jupiter, and Saturn — will be visible along the ecliptic before sunrise. Neptune is also present but requires binoculars or a telescope. This is a visual line-up rather than a precise planetary alignment.",
+    "tags": [
+      "planetary_parade",
+      "planets",
+      "morning",
+      "rare",
+      "binoculars_recommended"
+    ]
+  },
+  {
+    "id": "align-2026-03-07-venus-neptune",
+    "type": "alignment",
+    "title": "Venus–Neptune Close Conjunction",
+    "start": "2026-03-07T00:00:00Z",
+    "end": "2026-03-07T23:59:59Z",
+    "visibility": "global",
+    "confidence": "high",
+    "source": "In-The-Sky.org",
+    "description": "Venus passes extremely close to faint Neptune in the evening sky. Venus is brilliant, but Neptune requires binoculars or a telescope.",
+    "tags": ["conjunction", "planets", "evening", "telescope_required"]
+  },
+  {
+    "id": "align-2026-03-08-venus-saturn",
+    "type": "alignment",
+    "title": "Venus–Saturn Conjunction",
+    "start": "2026-03-08T00:00:00Z",
+    "end": "2026-03-08T23:59:59Z",
+    "visibility": "global",
+    "confidence": "high",
+    "source": "Royal Observatory Greenwich",
+    "description": "Bright Venus and golden Saturn appear close together in the evening sky, forming a striking naked-eye pairing.",
+    "tags": ["conjunction", "planets", "evening", "naked_eye"]
+  },
+  {
+    "id": "align-2026-06-08-venus-jupiter",
+    "type": "alignment",
+    "title": "Venus–Jupiter Conjunction (Evening)",
+    "start": "2026-06-08T00:00:00Z",
+    "end": "2026-06-08T23:59:59Z",
+    "visibility": "global",
+    "confidence": "high",
+    "source": "Royal Observatory Greenwich",
+    "tags": ["conjunction", "planets", "evening", "naked_eye"]
+  },
+  {
+    "id": "align-2026-11-14-mars-jupiter",
+    "type": "alignment",
+    "title": "Mars–Jupiter Conjunction",
+    "start": "2026-11-14T00:00:00Z",
+    "end": "2026-11-15T23:59:59Z",
+    "visibility": "global",
+    "confidence": "high",
+    "source": "In-The-Sky.org",
+    "tags": ["conjunction", "planets", "mars", "jupiter", "naked_eye"]
+  },
+  {
+    "id": "align-2027-03-02-moon-venus",
+    "type": "alignment",
+    "title": "Crescent Moon meets Venus",
+    "start": "2027-03-02T00:00:00Z",
+    "end": "2027-03-02T23:59:59Z",
+    "visibility": "global",
+    "confidence": "high",
+    "source": "Sky & Telescope",
+    "tags": ["moon", "venus", "evening", "romantic", "naked_eye"]
+  },
+  {
+    "id": "align-2027-08-19-planet-lineup",
+    "type": "alignment",
+    "title": "Five Planets Visible Before Dawn",
+    "start": "2027-08-19T00:00:00Z",
+    "end": "2027-08-25T23:59:59Z",
+    "visibility": "global",
+    "confidence": "medium",
+    "source": "Star Walk",
+    "tags": ["planetary_parade", "dawn", "rare", "naked_eye"]
+  },
+  {
+    "id": "align-2028-01-05-moon-saturn",
+    "type": "alignment",
+    "title": "Moon and Saturn in Close Embrace",
+    "start": "2028-01-05T00:00:00Z",
+    "end": "2028-01-05T23:59:59Z",
+    "visibility": "global",
+    "confidence": "high",
+    "source": "NASA Sky Events",
+    "tags": ["moon", "saturn", "evening", "naked_eye"]
+  }
+]
