@@ -15,7 +15,17 @@ VAPID_PRIVATE_KEY = "TW7EhNFjJusorX_LyTyVFllJRcBqK3fmkXlOMS6Jx-I"
 VAPID_SUBJECT = "mailto:you@example.com"
 
 app = Flask(__name__)
-CORS(app)
+
+CORS(
+    app,
+    resources={r"/api/*": {
+        "origins": [
+            "capacitor://localhost",
+            "http://localhost",
+            "https://localhost",
+        ]
+    }}
+)
 
 app.register_blueprint(auth_bp, url_prefix="/api/auth")
 
