@@ -18,8 +18,17 @@ app = Flask(__name__)
 
 CORS(
     app,
-    resources={r"/api/*": {"origins": "*"}}
+    resources={r"/api/*": {"origins": "*"}},
+    methods=["GET", "POST", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
+    supports_credentials=False,
 )
+
+@app.before_request
+def handle_options_preflight():
+    if request.method == "OPTIONS":
+        return "", 200
+
 
 
 app.register_blueprint(auth_bp, url_prefix="/api/auth")
