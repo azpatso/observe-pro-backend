@@ -11,13 +11,22 @@ import threading
 import time
 import firebase_admin
 from firebase_admin import credentials, messaging
-
-
-
+import os
 
 app = Flask(__name__)
-cred = credentials.Certificate("firebase-service-account.json")
+
+# ---------- Firebase Initialization (Production Safe) ----------
+
+firebase_json = os.environ.get("FIREBASE_CREDENTIALS")
+
+if not firebase_json:
+    raise RuntimeError("FIREBASE_CREDENTIALS environment variable not set")
+
+cred_dict = json.loads(firebase_json)
+cred = credentials.Certificate(cred_dict)
+
 firebase_admin.initialize_app(cred)
+
 
 
 CORS(
