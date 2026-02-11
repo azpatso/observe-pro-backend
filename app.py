@@ -22,10 +22,21 @@ firebase_json = os.environ.get("FIREBASE_CREDENTIALS")
 if not firebase_json:
     raise RuntimeError("FIREBASE_CREDENTIALS environment variable not set")
 
-cred_dict = json.loads(firebase_json)
-cred = credentials.Certificate(cred_dict)
+import os
+import json
 
-firebase_admin.initialize_app(cred)
+# ---------- Firebase Initialization (Render-safe) ----------
+firebase_key_json = os.environ.get("FIREBASE_SERVICE_ACCOUNT")
+
+if not firebase_admin._apps:
+    if firebase_key_json:
+        cred = credentials.Certificate(json.loads(firebase_key_json))
+        firebase_admin.initialize_app(cred)
+    else:
+        # Allow the app to boot without Firebase (no push), but not crash
+        print("⚠️ FIREBASE_SERVICE_ACCOUNT not set. Push notifications disabled.")
+
+
 
 
 
