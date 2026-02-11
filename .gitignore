@@ -4,3 +4,4 @@ __pycache__/
 .env
 data/users.json
 data/*cache*.json
+firebase-service-account.json

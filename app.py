@@ -9,12 +9,16 @@ from weather import get_weather_forecast
 from auth import auth_bp
 import threading
 import time
-from pywebpush import webpush, WebPushException
+import firebase_admin
+from firebase_admin import credentials, messaging
 
-VAPID_PRIVATE_KEY = "TW7EhNFjJusorX_LyTyVFllJRcBqK3fmkXlOMS6Jx-I"
-VAPID_SUBJECT = "mailto:you@example.com"
+
+
 
 app = Flask(__name__)
+cred = credentials.Certificate("firebase-service-account.json")
+firebase_admin.initialize_app(cred)
+
 
 CORS(
     app,
@@ -54,46 +58,32 @@ NOAA_KP_FORECAST_URL = "https://services.swpc.noaa.gov/products/noaa-planetary-k
 AURORA_CACHE_TTL_SECONDS = 60 * 60  # 1 hour
 
 def send_push(user, title, body, data=None):
-    subs = user.get("pushSubscriptions", [])
-    if not subs:
+    tokens = [
+        s.get("endpoint")
+        for s in user.get("pushSubscriptions", [])
+        if s.get("endpoint")
+    ]
+
+    if not tokens:
         return
 
-    payload = {
-        "title": title,
-        "body": body,
-        "data": data or {}
-    }
-
-    # Collect broken subscriptions to remove
-    bad_endpoints = set()
-
-    for sub in list(subs):
+    for token in tokens:
         try:
-            webpush(
-                subscription_info=sub,
-                data=json.dumps(payload),
-                vapid_private_key=VAPID_PRIVATE_KEY,
-                vapid_claims={"sub": VAPID_SUBJECT},
+            message = messaging.Message(
+                notification=messaging.Notification(
+                    title=title,
+                    body=body,
+                ),
+                data={k: str(v) for k, v in (data or {}).items()},
+                token=token,
             )
-        except WebPushException as e:
-            # If endpoint is expired/gone/unauthorized, mark for removal
-            try:
-                status = getattr(e.response, "status_code", None)
-            except Exception:
-                status = None
 
-            # Typical "dead subscription" status codes
-            if status in (404, 410, 401, 403):
-                endpoint = sub.get("endpoint")
-                if endpoint:
-                    bad_endpoints.add(endpoint)
-            continue
+            messaging.send(message)
 
-    # Remove dead subscriptions so you don’t keep retrying forever
-    if bad_endpoints:
-        user["pushSubscriptions"] = [
-            s for s in subs if s.get("endpoint") not in bad_endpoints
-        ]
+        except Exception as e:
+            print("FCM send error:", e)
+
+
 
 
 def _recently_notified(user, hours=12):
@@ -955,14 +945,10 @@ def push_subscribe():
     data = request.get_json() or {}
 
     user_id = data.get("userId")
-    sub = data.get("subscription")
+    token = data.get("token")
 
-    if not user_id or not sub:
-        return jsonify({"success": False, "error": "Missing userId or subscription"}), 400
-
-    # Basic validation (prevents corrupt writes)
-    if not isinstance(sub, dict) or not sub.get("endpoint"):
-        return jsonify({"success": False, "error": "Invalid subscription object"}), 400
+    if not user_id or not token:
+        return jsonify({"success": False, "error": "Missing userId or token"}), 400
 
     users = load_users()
     user = next((u for u in users if u.get("id") == user_id), None)
@@ -972,18 +958,16 @@ def push_subscribe():
 
     _ensure_push_schema(user)
 
-    endpoint = sub.get("endpoint")
-
-    # Remove any existing subscription with same endpoint, then add the latest version
-    user["pushSubscriptions"] = [
-        s for s in user["pushSubscriptions"]
-        if s.get("endpoint") != endpoint
-    ]
-    user["pushSubscriptions"].append(sub)
+    # Store FCM token inside endpoint field
+    if token not in [s.get("endpoint") for s in user["pushSubscriptions"]]:
+        user["pushSubscriptions"].append({
+            "endpoint": token
+        })
 
     save_users(users)
 
     return jsonify({"success": True})
+
 
 @app.route("/api/calendar/<event_id>")
 def export_calendar(event_id):
@@ -1121,10 +1105,8 @@ if __name__ == "__main__":
     ).start()
 
     import os
-
-    if __name__ == "__main__":
-        port = int(os.environ.get("PORT", 5000))
-        app.run(host="0.0.0.0", port=port)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
 
 
 
