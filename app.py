@@ -16,29 +16,30 @@ import os
 app = Flask(__name__)
 
 # ---------- Firebase Initialization (Production Safe) ----------
-
-firebase_json = os.environ.get("FIREBASE_CREDENTIALS")
-
-if not firebase_json:
-    raise RuntimeError("FIREBASE_CREDENTIALS environment variable not set")
-
 import os
 import json
 
-# ---------- Firebase Initialization (Render-safe) ----------
-firebase_key_json = os.environ.get("FIREBASE_SERVICE_ACCOUNT")
+try:
+    import firebase_admin
+    from firebase_admin import credentials, messaging
+except ImportError:
+    firebase_admin = None
+    credentials = None
+    messaging = None
+    print("⚠️ firebase-admin not installed. Push notifications disabled.")
 
-if not firebase_admin._apps:
-    if firebase_key_json:
+firebase_key_json = os.environ.get("FIREBASE_CREDENTIALS")
+
+if firebase_admin and firebase_key_json and not firebase_admin._apps:
+    try:
         cred = credentials.Certificate(json.loads(firebase_key_json))
         firebase_admin.initialize_app(cred)
-    else:
-        # Allow the app to boot without Firebase (no push), but not crash
-        print("⚠️ FIREBASE_SERVICE_ACCOUNT not set. Push notifications disabled.")
-
-
-
-
+        print("✅ Firebase initialized")
+    except Exception as e:
+        print("❌ Firebase init failed:", e)
+else:
+    if not firebase_key_json:
+        print("⚠️ FIREBASE_SERVICE_ACCOUNT not set")
 
 CORS(
     app,
@@ -902,6 +903,20 @@ def get_user_events():
 
     _ensure_user_events_schema(user)
     return jsonify({"success": True, "events": user["events"]})
+
+@app.route("/api/test-push")
+def test_push():
+    users = load_users()
+    user = users[-1]
+
+    send_push(
+        user,
+        "🚀 Test Notification",
+        "If you see this, push is fully working.",
+        {"type": "test"}
+    )
+
+    return jsonify({"success": True})
 
 
 @app.route("/api/user/events", methods=["POST"])
