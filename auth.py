@@ -19,9 +19,13 @@ SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 
 if not SUPABASE_URL or not SUPABASE_KEY:
-    raise RuntimeError("Supabase environment variables not set")
+    raise RuntimeError("Supabase environment variables not set properly")
 
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+try:
+    supabase = create_client(SUPABASE_URL.strip(), SUPABASE_KEY.strip())
+except Exception as e:
+    raise RuntimeError(f"Supabase initialization failed: {e}")
+
 
 # ----------------------------
 # Google OAuth
@@ -224,9 +228,12 @@ def google_callback():
         "email": email,
     }
 
+    import json
+
     encoded = base64.urlsafe_b64encode(
-        str(payload).encode()
+        json.dumps(payload).encode()
     ).decode()
+
 
     return "", 302, {
         "Location": f"{FRONTEND_COMPLETE_URL}?p={encoded}"
