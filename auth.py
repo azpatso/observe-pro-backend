@@ -15,16 +15,26 @@ CORS(auth_bp)
 # ----------------------------
 # Supabase Setup
 # ----------------------------
-SUPABASE_URL = os.environ.get("SUPABASE_URL")
-SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+SUPABASE_URL = (os.environ.get("SUPABASE_URL") or "").strip().rstrip("/")
+SUPABASE_KEY = (os.environ.get("SUPABASE_KEY") or "").strip()
 
 if not SUPABASE_URL or not SUPABASE_KEY:
     raise RuntimeError("Supabase environment variables not set properly")
 
+if SUPABASE_KEY.startswith("SUPABASE_KEY="):
+    raise RuntimeError(
+        "SUPABASE_KEY value includes 'SUPABASE_KEY=' prefix. Paste only the raw key."
+    )
+
+print("AUTH SUPABASE_URL:", repr(SUPABASE_URL))
+print("AUTH SUPABASE_KEY prefix:", SUPABASE_KEY[:12], "len:", len(SUPABASE_KEY))
+
 try:
-    supabase = create_client(SUPABASE_URL.strip(), SUPABASE_KEY.strip())
+    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+    print("✅ AUTH Supabase connected")
 except Exception as e:
-    raise RuntimeError(f"Supabase initialization failed: {e}")
+    raise RuntimeError(f"Supabase initialization failed (auth.py): {e}")
+
 
 
 # ----------------------------

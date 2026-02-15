@@ -12,8 +12,11 @@ import time
 import firebase_admin
 from firebase_admin import credentials, messaging
 import os
+from supabase import create_client, Client
 
 app = Flask(__name__)
+BASE_DIR = Path(__file__).parent
+DATA_DIR = BASE_DIR / "data"
 
 # ---------- Firebase Initialization (Production Safe) ----------
 import os
@@ -58,75 +61,84 @@ def handle_options_preflight():
 
 app.register_blueprint(auth_bp, url_prefix="/api/auth")
 
-BASE_DIR = Path(__file__).parent
-DATA_DIR = BASE_DIR / "data"
 
-USERS_FILE = DATA_DIR / "users.json"
-
-def load_users():
-    if not USERS_FILE.exists():
-        return []
-    try:
-        return json.loads(USERS_FILE.read_text(encoding="utf-8"))
-    except Exception:
-        return []
-
-def save_users(users):
-    USERS_FILE.write_text(json.dumps(users, indent=2), encoding="utf-8")
 
 AURORA_CACHE_FILE = DATA_DIR / "aurora_cache.json"
 NOAA_KP_FORECAST_URL = "https://services.swpc.noaa.gov/products/noaa-planetary-k-index-forecast.json"
 AURORA_CACHE_TTL_SECONDS = 60 * 60  # 1 hour
 
-def send_push(user, title, body, data=None):
-    tokens = [
-        s.get("endpoint")
-        for s in user.get("pushSubscriptions", [])
-        if s.get("endpoint")
-    ]
 
+def send_push(user_id, title, body, data=None):
+    if not messaging:
+        print("Push skipped - Firebase not configured")
+        return
+
+    response = supabase.table("push_tokens") \
+        .select("token") \
+        .eq("user_id", user_id) \
+        .execute()
+
+    tokens = [row["token"] for row in (response.data or [])]
     if not tokens:
         return
 
     for token in tokens:
         try:
             message = messaging.Message(
-                notification=messaging.Notification(
-                    title=title,
-                    body=body,
-                ),
+                notification=messaging.Notification(title=title, body=body),
                 data={k: str(v) for k, v in (data or {}).items()},
                 token=token,
             )
-
             messaging.send(message)
-
         except Exception as e:
             print("FCM send error:", e)
 
 
 
 
+# ---------- Supabase Initialization ----------
+SUPABASE_URL = (os.environ.get("SUPABASE_URL") or "").strip().rstrip("/")
+SUPABASE_KEY = (os.environ.get("SUPABASE_KEY") or "").strip()
+
+if not SUPABASE_URL.startswith("https://"):
+    raise RuntimeError(f"Supabase URL malformed: {SUPABASE_URL}")
+
+if not SUPABASE_KEY:
+    raise RuntimeError("Supabase key missing")
+
+# Detect common Render mistake
+if SUPABASE_KEY.startswith("SUPABASE_KEY="):
+    raise RuntimeError("SUPABASE_KEY value includes 'SUPABASE_KEY=' prefix. Paste only the raw key.")
+
+print("SUPABASE_URL:", repr(SUPABASE_URL))
+print("SUPABASE_KEY prefix:", SUPABASE_KEY[:12], "len:", len(SUPABASE_KEY))
+
+try:
+    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+    print("✅ Supabase connected")
+except Exception as e:
+    raise RuntimeError(f"Supabase initialization failed: {e}")
+
+
+
 def _recently_notified(user, hours=12):
-    ts = user.get("lastAuroraPushAt")
+    ts = user.get("last_aurora_push_at")
     if not ts:
         return False
 
     try:
-        last = datetime.fromisoformat(ts.replace("Z", ""))
+        last = datetime.fromisoformat(str(ts).replace("Z", ""))
         return datetime.utcnow() - last < timedelta(hours=hours)
     except Exception:
         return False
 
+
 def _parse_event_start(event):
     try:
-        return datetime.fromisoformat(event["start"].replace("Z", ""))
+        return datetime.fromisoformat(str(event["start"]).replace("Z", ""))
     except Exception:
         return None
 
-
-def _already_notified(event):
-    return bool(event.get("notifiedAt"))
 
 
 def _should_notify(event, now):
@@ -150,33 +162,42 @@ def _should_notify(event, now):
 def aurora_notification_job():
     while True:
         try:
-            users = load_users()
+            now_iso = _utc_now_iso()
 
-            for user in users:
-                events = user.get("events", [])
+            # Find users who saved aurora events
+            response = supabase.table("user_events") \
+                .select("user_id, users(id, lat, last_aurora_push_at)") \
+                .eq("type", "aurora") \
+                .execute()
+
+            rows = response.data or []
+
+            processed = set()
+
+            for row in rows:
+                user = row["users"]
+                user_id = user["id"]
+
+                # Avoid duplicate processing if multiple aurora saves
+                if user_id in processed:
+                    continue
+                processed.add(user_id)
+
                 lat = user.get("lat")
-
                 if lat is None:
                     continue
 
-
-                has_saved_aurora = any(
-                    e.get("type") == "aurora" for e in events
-                )
-
-                if not has_saved_aurora:
-                    continue
+                last_push = user.get("last_aurora_push_at")
+                if last_push:
+                    last = datetime.fromisoformat(str(last_push).replace("Z", ""))
+                    if datetime.utcnow() - last < timedelta(hours=12):
+                        continue
 
                 forecast = get_aurora_forecast(lat)
 
                 if forecast.get("likely"):
-
-                    # 🚫 prevent hourly spam
-                    if _recently_notified(user, hours=12):
-                        continue
-
                     send_push(
-                        user,
+                        user_id,
                         "🌌 Aurora Alert",
                         forecast.get("message"),
                         {
@@ -185,66 +206,57 @@ def aurora_notification_job():
                         }
                     )
 
-                    # mark notification time
-                    user["lastAuroraPushAt"] = _utc_now_iso()
-                    save_users(users)
+                    supabase.table("users") \
+                        .update({"last_aurora_push_at": now_iso}) \
+                        .eq("id", user_id) \
+                        .execute()
 
         except Exception as e:
             print("Aurora job error:", e)
 
-        # Run every 60 minutes
         time.sleep(60 * 60)
+
 
 def scheduled_event_notification_job():
     while True:
         try:
-            users = load_users()
             now = datetime.utcnow()
-            changed = False
 
-            for user in users:
-                events = user.get("events", [])
-                if not events:
+            response = supabase.table("user_events") \
+                .select("*, users(id)") \
+                .is_("notified_at", "null") \
+                .execute()
+
+            events = response.data or []
+
+            for event in events:
+                if not _should_notify(event, now):
                     continue
 
-                for event in events:
-                    etype = event.get("type")
+                user_id = event["user_id"]
 
-                    # Skip aurora (handled separately)
-                    if etype == "aurora":
-                        continue
+                send_push(
+                    user_id,
+                    f"🌌 {event['title']}",
+                    "Happening soon — check visibility in Observe Pro.",
+                    {
+                        "type": event["type"],
+                        "eventId": event["event_id"]
+                    }
+                )
 
-                    if _already_notified(event):
-                        continue
-
-                    if not _should_notify(event, now):
-                        continue
-
-                    title = f"🌌 {event.get('title', 'Cosmic event')}"
-                    body = "Happening soon — check visibility and details in My Sky."
-
-                    send_push(
-                        user,
-                        title,
-                        body,
-                        {
-                            "type": etype,
-                            "eventId": event.get("id")
-                        }
-                    )
-
-                    # Mark event as notified
-                    event["notifiedAt"] = _utc_now_iso()
-                    changed = True
-
-            if changed or True:
-                save_users(users)
+                supabase.table("user_events") \
+                    .update({"notified_at": _utc_now_iso()}) \
+                    .eq("id", event["id"]) \
+                    .execute()
 
         except Exception as e:
-            print("Scheduled notification job error:", e)
+            print("Scheduled job error:", e)
 
-        # Check every 30 minutes
         time.sleep(60 * 30)
+
+
+        
 
 # ---------- Load Moon Data Once ----------
 
@@ -472,15 +484,7 @@ def _load_aurora_cache():
 def _save_aurora_cache(payload):
     AURORA_CACHE_FILE.write_text(json.dumps(payload), encoding="utf-8")
 
-def _ensure_user_events_schema(user):
-    # Add events list if missing
-    if "events" not in user or not isinstance(user["events"], list):
-        user["events"] = []
 
-def _ensure_push_schema(user):
-    # Keep your existing pushSubscriptions key, just ensure it's a list
-    if "pushSubscriptions" not in user or not isinstance(user["pushSubscriptions"], list):
-        user["pushSubscriptions"] = []
 
 def fetch_noaa_kp_forecast_cached():
     """
@@ -896,34 +900,44 @@ def get_user_events():
     if not user_id:
         return jsonify({"success": False, "error": "Missing userId"}), 400
 
-    users = load_users()
-    user = next((u for u in users if u.get("id") == user_id), None)
-    if not user:
-        return jsonify({"success": False, "error": "User not found"}), 404
+    response = supabase.table("user_events") \
+        .select("*") \
+        .eq("user_id", user_id) \
+        .execute()
 
-    _ensure_user_events_schema(user)
-    return jsonify({"success": True, "events": user["events"]})
+    return jsonify({
+        "success": True,
+        "events": response.data or []
+    })
+
 
 @app.route("/api/test-push")
 def test_push():
-    users = load_users()
 
-    user_with_token = next(
-        (u for u in users if u.get("pushSubscriptions")),
-        None
-    )
+    # Get first push token
+    response = supabase.table("push_tokens").select("*").limit(1).execute()
+    tokens = response.data
 
-    if not user_with_token:
-        return jsonify({"error": "No users with push tokens found"}), 400
+    if not tokens:
+        return jsonify({"error": "No push tokens found"}), 400
 
-    send_push(
-        user_with_token,
-        "🚀 Test Notification",
-        "If you see this, push is fully working.",
-        {"type": "test"}
-    )
+    token = tokens[0]["token"]
 
-    return jsonify({"success": True})
+    try:
+        message = messaging.Message(
+            notification=messaging.Notification(
+                title="🚀 Test Notification",
+                body="Supabase + Firebase working!"
+            ),
+            token=token,
+        )
+
+        messaging.send(message)
+        return jsonify({"success": True})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 
 @app.route("/api/user/events", methods=["POST"])
@@ -933,28 +947,18 @@ def add_user_event():
     event = data.get("event")
 
     if not user_id or not event:
-        return jsonify({"success": False, "error": "Missing userId or event"}), 400
+        return jsonify({"success": False, "error": "Missing data"}), 400
 
-    if not isinstance(event, dict) or not event.get("id"):
-        return jsonify({"success": False, "error": "Event must be an object with an id"}), 400
+    supabase.table("user_events").insert({
+        "user_id": user_id,
+        "event_id": event.get("id"),
+        "type": event.get("type"),
+        "title": event.get("title"),
+        "start": event.get("start"),
+    }).execute()
 
-    users = load_users()
-    user = next((u for u in users if u.get("id") == user_id), None)
-    if not user:
-        return jsonify({"success": False, "error": "User not found"}), 404
+    return jsonify({"success": True})
 
-    _ensure_user_events_schema(user)
-
-    # Avoid duplicates by id
-    existing = user["events"]
-    if not any(e.get("id") == event.get("id") for e in existing):
-        # add server-side metadata (optional but useful)
-        event = dict(event)
-        event.setdefault("createdAt", _utc_now_iso())
-        existing.append(event)
-        save_users(users)
-
-    return jsonify({"success": True, "events": user["events"]})
 
 
 @app.route("/api/user/events", methods=["DELETE"])
@@ -966,76 +970,66 @@ def delete_user_event():
     if not user_id or not event_id:
         return jsonify({"success": False, "error": "Missing userId or eventId"}), 400
 
-    users = load_users()
-    user = next((u for u in users if u.get("id") == user_id), None)
-    if not user:
-        return jsonify({"success": False, "error": "User not found"}), 404
+    supabase.table("user_events") \
+        .delete() \
+        .eq("user_id", user_id) \
+        .eq("event_id", event_id) \
+        .execute()
 
-    _ensure_user_events_schema(user)
+    return jsonify({"success": True})
 
-    before = len(user["events"])
-    user["events"] = [e for e in user["events"] if e.get("id") != event_id]
-    after = len(user["events"])
-
-    if after != before:
-        save_users(users)
-
-    return jsonify({"success": True, "events": user["events"]})
 
 @app.route("/api/push/subscribe", methods=["POST"])
 def push_subscribe():
     data = request.get_json() or {}
-
     user_id = data.get("userId")
     token = data.get("token")
 
     if not user_id or not token:
         return jsonify({"success": False, "error": "Missing userId or token"}), 400
 
-    users = load_users()
-    user = next((u for u in users if u.get("id") == user_id), None)
+    # Insert token into push_tokens table
+    supabase.table("push_tokens").upsert({
+        "user_id": user_id,
+        "token": token
+    }).execute()
 
-    if not user:
-        return jsonify({"success": False, "error": "User not found"}), 404
-
-    _ensure_push_schema(user)
-
-    # Store FCM token inside endpoint field
-    if token not in [s.get("endpoint") for s in user["pushSubscriptions"]]:
-        user["pushSubscriptions"].append({
-            "endpoint": token
-        })
-
-    save_users(users)
 
     return jsonify({"success": True})
 
 
 @app.route("/api/calendar/<event_id>")
 def export_calendar(event_id):
-    users = load_users()
 
-    # Find the event across all users
-    for user in users:
-        for event in user.get("events", []):
-            if event.get("id") == event_id:
+    response = supabase.table("user_events") \
+        .select("*") \
+        .eq("event_id", event_id) \
+        .limit(1) \
+        .execute()
 
-                # 🚫 Aurora cannot be exported
-                if event.get("type") == "aurora":
-                    return jsonify({
-                        "error": "Aurora forecasts can’t be exported to calendar because they rely on short-term (~24h) space weather predictions for accuracy."
-                    }), 400
+    events = response.data
 
-                ics = generate_ics(event)
+    if not events:
+        return jsonify({"error": "Event not found"}), 404
 
-                return (
-                    ics,
-                    200,
-                    {
-                        "Content-Type": "text/calendar",
-                        "Content-Disposition": f'attachment; filename="{event_id}.ics"',
-                    },
-                )
+    event = events[0]
+
+    ics = generate_ics({
+        "id": event["event_id"],
+        "title": event["title"],
+        "start": event["start"],
+        "end": event["start"]
+    })
+
+    return (
+        ics,
+        200,
+        {
+            "Content-Type": "text/calendar",
+            "Content-Disposition": f'attachment; filename="{event_id}.ics"',
+        },
+    )
+
 
     return jsonify({"error": "Event not found"}), 404
 
@@ -1135,7 +1129,7 @@ def upcoming_events():
     enriched.sort(key=lambda e: e["start"])
     return jsonify(enriched[:50])
 
-if __name__ == "__main__":
+def start_background_jobs():
     threading.Thread(
         target=aurora_notification_job,
         daemon=True
@@ -1146,9 +1140,11 @@ if __name__ == "__main__":
         daemon=True
     ).start()
 
-    import os
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+start_background_jobs()
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+
 
 
 
