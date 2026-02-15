@@ -7,43 +7,71 @@ import uuid
 import base64
 import requests
 from urllib.parse import urlencode
-from supabase import create_client
+import json
 
 auth_bp = Blueprint("auth", __name__)
 CORS(auth_bp)
 
-# ----------------------------
-# Supabase Setup
-# ----------------------------
+# ============================================================
+# Supabase REST Setup
+# ============================================================
+
 SUPABASE_URL = (os.environ.get("SUPABASE_URL") or "").strip().rstrip("/")
 SUPABASE_KEY = (os.environ.get("SUPABASE_KEY") or "").strip()
 
-# ---- Disable Render proxy injection ----
-os.environ.pop("HTTP_PROXY", None)
-os.environ.pop("HTTPS_PROXY", None)
-os.environ.pop("http_proxy", None)
-os.environ.pop("https_proxy", None)
+HEADERS = {
+    "apikey": SUPABASE_KEY,
+    "Authorization": f"Bearer {SUPABASE_KEY}",
+    "Content-Type": "application/json",
+    "Prefer": "return=representation"
+}
 
-from supabase import create_client
-from supabase.lib.client_options import ClientOptions
+def sb_get(table, params=None):
+    r = requests.get(
+        f"{SUPABASE_URL}/rest/v1/{table}",
+        headers=HEADERS,
+        params=params,
+        timeout=10
+    )
+    r.raise_for_status()
+    return r.json()
 
-options = ClientOptions(
-    postgrest_client_timeout=10,
-    storage_client_timeout=10,
-)
+def sb_post(table, data):
+    r = requests.post(
+        f"{SUPABASE_URL}/rest/v1/{table}",
+        headers=HEADERS,
+        json=data,
+        timeout=10
+    )
+    r.raise_for_status()
+    return r.json()
 
-supabase = create_client(
-    SUPABASE_URL,
-    SUPABASE_KEY,
-    options=options
-)
+def sb_patch(table, filters, data):
+    r = requests.patch(
+        f"{SUPABASE_URL}/rest/v1/{table}",
+        headers=HEADERS,
+        params=filters,
+        json=data,
+        timeout=10
+    )
+    r.raise_for_status()
+    return r.json()
 
-print("✅ AUTH Supabase connected")
+def sb_delete(table, filters):
+    r = requests.delete(
+        f"{SUPABASE_URL}/rest/v1/{table}",
+        headers=HEADERS,
+        params=filters,
+        timeout=10
+    )
+    r.raise_for_status()
+    return r.json()
 
 
-# ----------------------------
+# ============================================================
 # Google OAuth
-# ----------------------------
+# ============================================================
+
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
 GOOGLE_REDIRECT_URI = os.environ.get(
@@ -56,11 +84,9 @@ FRONTEND_COMPLETE_URL = os.environ.get(
     "https://your-frontend-domain.com/google-complete"
 )
 
-# ----------------------------
-# Consent versioning
-# ----------------------------
 TERMS_VERSION = "1.0"
 PRIVACY_VERSION = "1.0"
+
 
 # ============================================================
 # REGISTER
@@ -94,14 +120,14 @@ def register():
     if not terms_accepted_at:
         return jsonify({"error": "You must accept the Terms and Privacy Policy"}), 400
 
-    # Check duplicate email
-    existing = supabase.table("users").select("id").eq("email", email).execute()
-    if existing.data:
+    # Check duplicate
+    existing = sb_get("users", {"email": f"eq.{email}"})
+    if existing:
         return jsonify({"error": "Email already registered"}), 409
 
     user_id = str(uuid.uuid4())
 
-    supabase.table("users").insert({
+    sb_post("users", {
         "id": user_id,
         "email": email,
         "password_hash": generate_password_hash(password),
@@ -113,7 +139,7 @@ def register():
         "terms_version": TERMS_VERSION,
         "privacy_version": PRIVACY_VERSION,
         "profile_complete": True
-    }).execute()
+    })
 
     return jsonify({
         "id": user_id,
@@ -137,11 +163,11 @@ def login():
     if not email or not password:
         return jsonify({"error": "Email and password required"}), 400
 
-    response = supabase.table("users").select("*").eq("email", email).execute()
-    if not response.data:
+    users = sb_get("users", {"email": f"eq.{email}"})
+    if not users:
         return jsonify({"error": "Invalid email or password"}), 401
 
-    user = response.data[0]
+    user = users[0]
 
     if user.get("auth_provider") == "google":
         return jsonify({"error": "Use Google login for this account"}), 401
@@ -204,7 +230,6 @@ def google_callback():
 
     token_data = token_res.json()
     access_token = token_data.get("access_token")
-
     if not access_token:
         return "Google token exchange failed", 400
 
@@ -221,19 +246,19 @@ def google_callback():
     if not google_id or not email:
         return "Invalid Google profile", 400
 
-    response = supabase.table("users").select("*").eq("email", email).execute()
-    user = response.data[0] if response.data else None
+    users = sb_get("users", {"email": f"eq.{email}"})
+    user = users[0] if users else None
 
     if not user:
         user_id = str(uuid.uuid4())
-        supabase.table("users").insert({
+        sb_post("users", {
             "id": user_id,
             "email": email,
             "google_id": google_id,
             "auth_provider": "google",
             "created_at": datetime.utcnow().isoformat() + "Z",
             "profile_complete": False
-        }).execute()
+        })
     else:
         user_id = user["id"]
 
@@ -242,12 +267,9 @@ def google_callback():
         "email": email,
     }
 
-    import json
-
     encoded = base64.urlsafe_b64encode(
         json.dumps(payload).encode()
     ).decode()
-
 
     return "", 302, {
         "Location": f"{FRONTEND_COMPLETE_URL}?p={encoded}"
@@ -277,13 +299,17 @@ def complete_profile():
     if lat is None or lon is None:
         return jsonify({"success": False, "error": "Latitude and longitude required"}), 400
 
-    supabase.table("users").update({
-        "city": city,
-        "country": country,
-        "lat": float(lat),
-        "lon": float(lon),
-        "profile_complete": True
-    }).eq("id", user_id).execute()
+    sb_patch(
+        "users",
+        {"id": f"eq.{user_id}"},
+        {
+            "city": city,
+            "country": country,
+            "lat": float(lat),
+            "lon": float(lon),
+            "profile_complete": True
+        }
+    )
 
     return jsonify({"success": True})
 
@@ -300,9 +326,9 @@ def delete_account():
     if not user_id:
         return jsonify({"success": False, "error": "Missing userId"}), 400
 
-    supabase.table("users").delete().eq("id", user_id).execute()
-    supabase.table("user_events").delete().eq("user_id", user_id).execute()
-    supabase.table("push_tokens").delete().eq("user_id", user_id).execute()
+    sb_delete("users", {"id": f"eq.{user_id}"})
+    sb_delete("user_events", {"user_id": f"eq.{user_id}"})
+    sb_delete("push_tokens", {"user_id": f"eq.{user_id}"})
 
     return jsonify({
         "success": True,

@@ -12,7 +12,7 @@ import time
 import firebase_admin
 from firebase_admin import credentials, messaging
 import os
-from supabase import create_client, Client
+import requests
 
 app = Flask(__name__)
 BASE_DIR = Path(__file__).parent
@@ -73,12 +73,9 @@ def send_push(user_id, title, body, data=None):
         print("Push skipped - Firebase not configured")
         return
 
-    response = supabase.table("push_tokens") \
-        .select("token") \
-        .eq("user_id", user_id) \
-        .execute()
+    rows = sb_get("push_tokens", {"user_id": f"eq.{user_id}"})
+    tokens = [row["token"] for row in rows]
 
-    tokens = [row["token"] for row in (response.data or [])]
     if not tokens:
         return
 
@@ -94,42 +91,61 @@ def send_push(user_id, title, body, data=None):
             print("FCM send error:", e)
 
 
-
-
-# ---------- Supabase Initialization ----------
+# ---------- Supabase REST Setup ----------
 SUPABASE_URL = (os.environ.get("SUPABASE_URL") or "").strip().rstrip("/")
 SUPABASE_KEY = (os.environ.get("SUPABASE_KEY") or "").strip()
 
-if not SUPABASE_URL.startswith("https://"):
-    raise RuntimeError(f"Supabase URL malformed: {SUPABASE_URL}")
+if not SUPABASE_URL or not SUPABASE_KEY:
+    raise RuntimeError("SUPABASE_URL or SUPABASE_KEY missing")
+                       
+HEADERS = {
+    "apikey": SUPABASE_KEY,
+    "Authorization": f"Bearer {SUPABASE_KEY}",
+    "Content-Type": "application/json",
+    "Prefer": "return=representation"
+}
 
-if not SUPABASE_KEY:
-    raise RuntimeError("Supabase key missing")
-
-# Detect common Render mistake
-if SUPABASE_KEY.startswith("SUPABASE_KEY="):
-    raise RuntimeError("SUPABASE_KEY value includes 'SUPABASE_KEY=' prefix. Paste only the raw key.")
-
-print("SUPABASE_URL:", repr(SUPABASE_URL))
-print("SUPABASE_KEY prefix:", SUPABASE_KEY[:12], "len:", len(SUPABASE_KEY))
-
-from supabase.lib.client_options import ClientOptions
-
-try:
-    options = ClientOptions(
-        postgrest_client_timeout=10,
-        storage_client_timeout=10,
+def sb_get(table, params=None):
+    r = requests.get(
+        f"{SUPABASE_URL}/rest/v1/{table}",
+        headers=HEADERS,
+        params=params,
+        timeout=10
     )
+    r.raise_for_status()
+    return r.json()
 
-    supabase: Client = create_client(
-        SUPABASE_URL,
-        SUPABASE_KEY,
-        options=options
+def sb_post(table, data):
+    r = requests.post(
+        f"{SUPABASE_URL}/rest/v1/{table}",
+        headers=HEADERS,
+        json=data,
+        timeout=10
     )
+    r.raise_for_status()
+    return r.json()
 
-    print("✅ Supabase connected")
-except Exception as e:
-    raise RuntimeError(f"Supabase initialization failed: {e}")
+def sb_patch(table, filters, data):
+    r = requests.patch(
+        f"{SUPABASE_URL}/rest/v1/{table}",
+        headers=HEADERS,
+        params=filters,
+        json=data,
+        timeout=10
+    )
+    r.raise_for_status()
+    return r.json()
+
+def sb_delete(table, filters):
+    r = requests.delete(
+        f"{SUPABASE_URL}/rest/v1/{table}",
+        headers=HEADERS,
+        params=filters,
+        timeout=10
+    )
+    r.raise_for_status()
+    return r.json()
+
 
 
 
@@ -177,21 +193,27 @@ def aurora_notification_job():
         try:
             now_iso = _utc_now_iso()
 
-            # Find users who saved aurora events
-            response = supabase.table("user_events") \
-                .select("user_id, users(id, lat, last_aurora_push_at)") \
-                .eq("type", "aurora") \
-                .execute()
-
-            rows = response.data or []
+            # Fetch users who saved aurora events (join with users table)
+            rows = sb_get(
+                "user_events",
+                {
+                    "type": "eq.aurora",
+                    "select": "user_id,users(id,lat,last_aurora_push_at)"
+                }
+            )
 
             processed = set()
 
             for row in rows:
-                user = row["users"]
-                user_id = user["id"]
+                user = row.get("users")
+                if not user:
+                    continue
 
-                # Avoid duplicate processing if multiple aurora saves
+                user_id = user.get("id")
+                if not user_id:
+                    continue
+
+                # Prevent duplicate processing if multiple aurora saves
                 if user_id in processed:
                     continue
                 processed.add(user_id)
@@ -200,11 +222,15 @@ def aurora_notification_job():
                 if lat is None:
                     continue
 
+                # 12-hour cooldown check
                 last_push = user.get("last_aurora_push_at")
                 if last_push:
-                    last = datetime.fromisoformat(str(last_push).replace("Z", ""))
-                    if datetime.utcnow() - last < timedelta(hours=12):
-                        continue
+                    try:
+                        last = datetime.fromisoformat(str(last_push).replace("Z", ""))
+                        if datetime.utcnow() - last < timedelta(hours=12):
+                            continue
+                    except Exception:
+                        pass
 
                 forecast = get_aurora_forecast(lat)
 
@@ -219,15 +245,18 @@ def aurora_notification_job():
                         }
                     )
 
-                    supabase.table("users") \
-                        .update({"last_aurora_push_at": now_iso}) \
-                        .eq("id", user_id) \
-                        .execute()
+                    # Update last push timestamp
+                    sb_patch(
+                        "users",
+                        {"id": f"eq.{user_id}"},
+                        {"last_aurora_push_at": now_iso}
+                    )
 
         except Exception as e:
             print("Aurora job error:", e)
 
-        time.sleep(60 * 60)
+        time.sleep(60 * 60)  # run every hour
+
 
 
 def scheduled_event_notification_job():
@@ -235,38 +264,44 @@ def scheduled_event_notification_job():
         try:
             now = datetime.utcnow()
 
-            response = supabase.table("user_events") \
-                .select("*, users(id)") \
-                .is_("notified_at", "null") \
-                .execute()
-
-            events = response.data or []
+            # Fetch events not yet notified
+            events = sb_get(
+                "user_events",
+                {
+                    "notified_at": "is.null",
+                    "select": "*,users(id)"
+                }
+            )
 
             for event in events:
                 if not _should_notify(event, now):
                     continue
 
-                user_id = event["user_id"]
+                user_id = event.get("user_id")
+                if not user_id:
+                    continue
 
                 send_push(
                     user_id,
-                    f"🌌 {event['title']}",
+                    f"🌌 {event.get('title')}",
                     "Happening soon — check visibility in Observe Pro.",
                     {
-                        "type": event["type"],
-                        "eventId": event["event_id"]
+                        "type": event.get("type"),
+                        "eventId": event.get("event_id")
                     }
                 )
 
-                supabase.table("user_events") \
-                    .update({"notified_at": _utc_now_iso()}) \
-                    .eq("id", event["id"]) \
-                    .execute()
+                sb_patch(
+                    "user_events",
+                    {"id": f"eq.{event['id']}"},
+                    {"notified_at": _utc_now_iso()}
+                )
 
         except Exception as e:
             print("Scheduled job error:", e)
 
         time.sleep(60 * 30)
+
 
 
         
@@ -913,23 +948,19 @@ def get_user_events():
     if not user_id:
         return jsonify({"success": False, "error": "Missing userId"}), 400
 
-    response = supabase.table("user_events") \
-        .select("*") \
-        .eq("user_id", user_id) \
-        .execute()
+    events = sb_get("user_events", {"user_id": f"eq.{user_id}"})
 
     return jsonify({
         "success": True,
-        "events": response.data or []
+        "events": events
     })
+
 
 
 @app.route("/api/test-push")
 def test_push():
+    tokens = sb_get("push_tokens", {"limit": 1})
 
-    # Get first push token
-    response = supabase.table("push_tokens").select("*").limit(1).execute()
-    tokens = response.data
 
     if not tokens:
         return jsonify({"error": "No push tokens found"}), 400
@@ -953,6 +984,7 @@ def test_push():
 
 
 
+
 @app.route("/api/user/events", methods=["POST"])
 def add_user_event():
     data = request.get_json() or {}
@@ -962,15 +994,16 @@ def add_user_event():
     if not user_id or not event:
         return jsonify({"success": False, "error": "Missing data"}), 400
 
-    supabase.table("user_events").insert({
+    sb_post("user_events", {
         "user_id": user_id,
         "event_id": event.get("id"),
         "type": event.get("type"),
         "title": event.get("title"),
         "start": event.get("start"),
-    }).execute()
+    })
 
     return jsonify({"success": True})
+
 
 
 
@@ -983,13 +1016,16 @@ def delete_user_event():
     if not user_id or not event_id:
         return jsonify({"success": False, "error": "Missing userId or eventId"}), 400
 
-    supabase.table("user_events") \
-        .delete() \
-        .eq("user_id", user_id) \
-        .eq("event_id", event_id) \
-        .execute()
+    sb_delete(
+        "user_events",
+        {
+            "user_id": f"eq.{user_id}",
+            "event_id": f"eq.{event_id}"
+        }
+    )
 
     return jsonify({"success": True})
+
 
 
 @app.route("/api/push/subscribe", methods=["POST"])
@@ -1001,26 +1037,25 @@ def push_subscribe():
     if not user_id or not token:
         return jsonify({"success": False, "error": "Missing userId or token"}), 400
 
-    # Insert token into push_tokens table
-    supabase.table("push_tokens").upsert({
+    sb_post("push_tokens", {
         "user_id": user_id,
         "token": token
-    }).execute()
-
+    })
 
     return jsonify({"success": True})
+
 
 
 @app.route("/api/calendar/<event_id>")
 def export_calendar(event_id):
 
-    response = supabase.table("user_events") \
-        .select("*") \
-        .eq("event_id", event_id) \
-        .limit(1) \
-        .execute()
-
-    events = response.data
+    events = sb_get(
+        "user_events",
+        {
+            "event_id": f"eq.{event_id}",
+            "limit": 1
+        }
+    )
 
     if not events:
         return jsonify({"error": "Event not found"}), 404
@@ -1043,8 +1078,6 @@ def export_calendar(event_id):
         },
     )
 
-
-    return jsonify({"error": "Event not found"}), 404
 
 
 @app.route("/api/moon")
