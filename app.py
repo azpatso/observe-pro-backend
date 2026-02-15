@@ -907,10 +907,17 @@ def get_user_events():
 @app.route("/api/test-push")
 def test_push():
     users = load_users()
-    user = users[-1]
+
+    user_with_token = next(
+        (u for u in users if u.get("pushSubscriptions")),
+        None
+    )
+
+    if not user_with_token:
+        return jsonify({"error": "No users with push tokens found"}), 400
 
     send_push(
-        user,
+        user_with_token,
         "🚀 Test Notification",
         "If you see this, push is fully working.",
         {"type": "test"}
