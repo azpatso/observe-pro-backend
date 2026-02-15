@@ -113,11 +113,24 @@ if SUPABASE_KEY.startswith("SUPABASE_KEY="):
 print("SUPABASE_URL:", repr(SUPABASE_URL))
 print("SUPABASE_KEY prefix:", SUPABASE_KEY[:12], "len:", len(SUPABASE_KEY))
 
+from supabase.lib.client_options import ClientOptions
+
 try:
-    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+    options = ClientOptions(
+        postgrest_client_timeout=10,
+        storage_client_timeout=10,
+    )
+
+    supabase: Client = create_client(
+        SUPABASE_URL,
+        SUPABASE_KEY,
+        options=options
+    )
+
     print("✅ Supabase connected")
 except Exception as e:
     raise RuntimeError(f"Supabase initialization failed: {e}")
+
 
 
 

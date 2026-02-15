@@ -18,23 +18,27 @@ CORS(auth_bp)
 SUPABASE_URL = (os.environ.get("SUPABASE_URL") or "").strip().rstrip("/")
 SUPABASE_KEY = (os.environ.get("SUPABASE_KEY") or "").strip()
 
-if not SUPABASE_URL or not SUPABASE_KEY:
-    raise RuntimeError("Supabase environment variables not set properly")
+# ---- Disable Render proxy injection ----
+os.environ.pop("HTTP_PROXY", None)
+os.environ.pop("HTTPS_PROXY", None)
+os.environ.pop("http_proxy", None)
+os.environ.pop("https_proxy", None)
 
-if SUPABASE_KEY.startswith("SUPABASE_KEY="):
-    raise RuntimeError(
-        "SUPABASE_KEY value includes 'SUPABASE_KEY=' prefix. Paste only the raw key."
-    )
+from supabase import create_client
+from supabase.lib.client_options import ClientOptions
 
-print("AUTH SUPABASE_URL:", repr(SUPABASE_URL))
-print("AUTH SUPABASE_KEY prefix:", SUPABASE_KEY[:12], "len:", len(SUPABASE_KEY))
+options = ClientOptions(
+    postgrest_client_timeout=10,
+    storage_client_timeout=10,
+)
 
-try:
-    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-    print("✅ AUTH Supabase connected")
-except Exception as e:
-    raise RuntimeError(f"Supabase initialization failed (auth.py): {e}")
+supabase = create_client(
+    SUPABASE_URL,
+    SUPABASE_KEY,
+    options=options
+)
 
+print("✅ AUTH Supabase connected")
 
 
 # ----------------------------
