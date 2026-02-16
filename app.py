@@ -1048,18 +1048,44 @@ def push_subscribe():
 
 @app.route("/api/calendar/<event_id>")
 def export_calendar(event_id):
+    from flask import request
 
-    # Collect all possible event sources
-    all_events = []
-    all_events.extend(get_eclipse_events())
-    all_events.extend(get_meteor_events())
-    all_events.extend(get_comet_events())
-    all_events.extend(get_special_moon_events())
-    all_events.extend(get_alignment_events())
-    all_events.extend(MOON_EVENTS)
+    user_id = request.args.get("userId")
 
-    # Find event
-    event = next((e for e in all_events if e["id"] == event_id), None)
+    event = None
+
+    # 1️⃣ Try user_events first (saved events)
+    if user_id:
+        rows = sb_get(
+            "user_events",
+            {
+                "user_id": f"eq.{user_id}",
+                "event_id": f"eq.{event_id}",
+                "limit": 1
+            }
+        )
+        if rows:
+            row = rows[0]
+            event = {
+                "id": row["event_id"],
+                "title": row["title"],
+                "start": row["start"],
+                "end": row["start"]
+            }
+
+    # 2️⃣ If not found → search static events
+    if not event:
+        all_events = []
+        all_events.extend(get_eclipse_events())
+        all_events.extend(get_meteor_events())
+        all_events.extend(get_comet_events())
+        all_events.extend(get_alignment_events())
+        all_events.extend(get_special_moon_events())
+
+        for e in all_events:
+            if e["id"] == event_id:
+                event = e
+                break
 
     if not event:
         return jsonify({"error": "Event not found"}), 404
@@ -1075,28 +1101,6 @@ def export_calendar(event_id):
         },
     )
 
-
-
-    if not events:
-        return jsonify({"error": "Event not found"}), 404
-
-    event = events[0]
-
-    ics = generate_ics({
-        "id": event["event_id"],
-        "title": event["title"],
-        "start": event["start"],
-        "end": event["start"]
-    })
-
-    return (
-        ics,
-        200,
-        {
-            "Content-Type": "text/calendar",
-            "Content-Disposition": f'attachment; filename="{event_id}.ics"',
-        },
-    )
 
 
 
