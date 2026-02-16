@@ -960,8 +960,13 @@ def get_user_events():
 
 @app.route("/api/test-push")
 def test_push():
-    tokens = sb_get("push_tokens", {"limit": 1})
-
+    tokens = sb_get(
+        "push_tokens",
+        {
+            "order": "created_at.desc",
+            "limit": 1
+        }
+    )
 
     if not tokens:
         return jsonify({"error": "No push tokens found"}), 400
@@ -982,6 +987,7 @@ def test_push():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 
 
