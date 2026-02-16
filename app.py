@@ -1049,30 +1049,22 @@ def push_subscribe():
 @app.route("/api/calendar/<event_id>")
 def export_calendar(event_id):
 
-    user_id = request.args.get("userId")
-    if not user_id:
-        return jsonify({"error": "Missing userId"}), 400
+    # Collect all possible event sources
+    all_events = []
+    all_events.extend(get_eclipse_events())
+    all_events.extend(get_meteor_events())
+    all_events.extend(get_comet_events())
+    all_events.extend(get_special_moon_events())
+    all_events.extend(get_alignment_events())
+    all_events.extend(MOON_EVENTS)
 
-    events = sb_get(
-        "user_events",
-        {
-            "user_id": f"eq.{user_id}",
-            "event_id": f"eq.{event_id}",
-            "limit": 1
-        }
-    )
+    # Find event
+    event = next((e for e in all_events if e["id"] == event_id), None)
 
-    if not events:
+    if not event:
         return jsonify({"error": "Event not found"}), 404
 
-    event = events[0]
-
-    ics = generate_ics({
-        "id": event["event_id"],
-        "title": event["title"],
-        "start": event["start"],
-        "end": event["start"]
-    })
+    ics = generate_ics(event)
 
     return (
         ics,
@@ -1082,6 +1074,7 @@ def export_calendar(event_id):
             "Content-Disposition": f'attachment; filename="{event_id}.ics"',
         },
     )
+
 
 
     if not events:
