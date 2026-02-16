@@ -101,6 +101,9 @@ def register():
     city = (data.get("city") or "").strip()
     country = (data.get("country") or "").strip()
     terms_accepted_at = data.get("termsAcceptedAt")
+    timezone = data.get("timezone") or "UTC"
+
+
 
     if not email or "@" not in email:
         return jsonify({"error": "Valid email is required"}), 400
@@ -134,12 +137,14 @@ def register():
         "auth_provider": "local",
         "city": city,
         "country": country,
+        "timezone": timezone,
         "created_at": datetime.utcnow().isoformat() + "Z",
         "terms_accepted_at": terms_accepted_at,
         "terms_version": TERMS_VERSION,
         "privacy_version": PRIVACY_VERSION,
         "profile_complete": True
     })
+
 
     return jsonify({
         "id": user_id,
@@ -289,6 +294,9 @@ def complete_profile():
     country = (data.get("country") or "").strip()
     lat = data.get("lat")
     lon = data.get("lon")
+    timezone = data.get("timezone") or "UTC"
+
+
 
     if not user_id:
         return jsonify({"success": False, "error": "Missing userId"}), 400
@@ -303,13 +311,15 @@ def complete_profile():
         "users",
         {"id": f"eq.{user_id}"},
         {
-            "city": city,
-            "country": country,
-            "lat": float(lat),
-            "lon": float(lon),
-            "profile_complete": True
+             "city": city,
+             "country": country,
+             "lat": float(lat),
+             "lon": float(lon),
+             "timezone": timezone,
+             "profile_complete": True
         }
     )
+
 
     return jsonify({"success": True})
 
