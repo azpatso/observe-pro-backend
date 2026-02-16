@@ -960,33 +960,38 @@ def get_user_events():
 
 @app.route("/api/test-push")
 def test_push():
-    tokens = sb_get(
-        "push_tokens",
+    # 1) get most recent saved event (that has a user_id)
+    events = sb_get(
+        "user_events",
         {
             "order": "created_at.desc",
             "limit": 1
         }
     )
 
-    if not tokens:
-        return jsonify({"error": "No push tokens found"}), 400
+    if not events:
+        return jsonify({"error": "No saved events found"}), 400
 
-    token = tokens[0]["token"]
+    ev = events[0]
+    user_id = ev["user_id"]
 
-    try:
-        message = messaging.Message(
-            notification=messaging.Notification(
-                title="🚀 Test Notification",
-                body="Supabase + Firebase working!"
-            ),
-            token=token,
-        )
+    # 2) build a nice title/body
+    title = f"🌌 {ev.get('title', 'Cosmic Event')}"
+    body = "Saved event reminder — tap to view details."
 
-        messaging.send(message)
-        return jsonify({"success": True})
+    # 3) include data for deep-link routing later
+    send_push(
+        user_id,
+        title,
+        body,
+        {
+            "type": ev.get("type", ""),
+            "eventId": ev.get("event_id", "")
+        }
+    )
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return jsonify({"success": True, "sentToUser": user_id, "eventId": ev.get("event_id")})
+
 
 
 
