@@ -1049,13 +1049,40 @@ def push_subscribe():
 @app.route("/api/calendar/<event_id>")
 def export_calendar(event_id):
 
+    user_id = request.args.get("userId")
+    if not user_id:
+        return jsonify({"error": "Missing userId"}), 400
+
     events = sb_get(
         "user_events",
         {
+            "user_id": f"eq.{user_id}",
             "event_id": f"eq.{event_id}",
             "limit": 1
         }
     )
+
+    if not events:
+        return jsonify({"error": "Event not found"}), 404
+
+    event = events[0]
+
+    ics = generate_ics({
+        "id": event["event_id"],
+        "title": event["title"],
+        "start": event["start"],
+        "end": event["start"]
+    })
+
+    return (
+        ics,
+        200,
+        {
+            "Content-Type": "text/calendar",
+            "Content-Disposition": f'attachment; filename="{event_id}.ics"',
+        },
+    )
+
 
     if not events:
         return jsonify({"error": "Event not found"}), 404
