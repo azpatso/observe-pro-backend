@@ -1049,12 +1049,23 @@ def push_subscribe():
     if not user_id or not token:
         return jsonify({"success": False, "error": "Missing userId or token"}), 400
 
-    sb_post("push_tokens", {
-        "user_id": user_id,
-        "token": token
-    })
+    # Check if token already exists
+    existing = sb_get(
+        "push_tokens",
+        {
+            "user_id": f"eq.{user_id}",
+            "token": f"eq.{token}"
+        }
+    )
+
+    if not existing:
+        sb_post("push_tokens", {
+            "user_id": user_id,
+            "token": token
+        })
 
     return jsonify({"success": True})
+
 
 
 
