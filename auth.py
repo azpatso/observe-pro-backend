@@ -277,8 +277,9 @@ def google_callback():
     ).decode()
 
     return "", 302, {
-        "Location": f"{FRONTEND_COMPLETE_URL}?p={encoded}"
+        "Location": f"com.observepro.space://auth?p={encoded}"
     }
+
 
 
 # ============================================================
