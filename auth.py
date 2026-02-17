@@ -328,7 +328,7 @@ def complete_profile():
 # DELETE ACCOUNT
 # ============================================================
 
-@auth_bp.route("/delete-account", methods=["POST"])
+@auth_bp.route("/delete-account", methods=["DELETE"])
 def delete_account():
     data = request.get_json() or {}
     user_id = data.get("userId")
@@ -337,10 +337,9 @@ def delete_account():
         return jsonify({"success": False, "error": "Missing userId"}), 400
 
     sb_delete("users", {"id": f"eq.{user_id}"})
-    sb_delete("user_events", {"user_id": f"eq.{user_id}"})
-    sb_delete("push_tokens", {"user_id": f"eq.{user_id}"})
 
     return jsonify({
         "success": True,
         "message": "Account deleted permanently"
     })
+
