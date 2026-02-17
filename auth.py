@@ -255,17 +255,20 @@ def google_callback():
     user = users[0] if users else None
 
     if not user:
-        user_id = str(uuid.uuid4())
-        sb_post("users", {
-            "id": user_id,
-            "email": email,
-            "google_id": google_id,
-            "auth_provider": "google",
-            "created_at": datetime.utcnow().isoformat() + "Z",
-            "profile_complete": False
+       user_id = str(uuid.uuid4())
+
+       sb_post("users", {
+           "id": user_id,
+           "email": email,
+           "google_id": google_id,
+           "auth_provider": "google",
+           "created_at": datetime.utcnow().isoformat() + "Z",
+           "profile_complete": False
         })
     else:
-        user_id = user["id"]
+         user_id = user["id"]
+
+
 
     payload = {
         "id": user_id,
