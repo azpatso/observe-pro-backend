@@ -1049,22 +1049,23 @@ def push_subscribe():
     if not user_id or not token:
         return jsonify({"success": False, "error": "Missing userId or token"}), 400
 
-    # Check if token already exists
-    existing = sb_get(
-        "push_tokens",
-        {
-            "user_id": f"eq.{user_id}",
-            "token": f"eq.{token}"
-        }
-    )
-
-    if not existing:
+    try:
         sb_post("push_tokens", {
             "user_id": user_id,
             "token": token
         })
+        return jsonify({"success": True, "message": "Token inserted"}), 200
 
-    return jsonify({"success": True})
+    except requests.HTTPError as e:
+        # 409 = UNIQUE constraint violation (token already exists)
+        if e.response is not None and e.response.status_code == 409:
+            return jsonify({"success": True, "message": "Token already exists"}), 200
+
+        # Any other error → real failure
+        print("Push subscribe error:", e)
+        return jsonify({"success": False, "error": "Failed to save token"}), 500
+
+
 
 
 
