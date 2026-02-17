@@ -14,6 +14,7 @@ import firebase_admin
 from firebase_admin import credentials, messaging
 import os
 import requests
+from zoneinfo import ZoneInfo
 
 app = Flask(__name__)
 BASE_DIR = Path(__file__).parent
@@ -87,9 +88,20 @@ def send_push(user_id, title, body, data=None):
                 data={k: str(v) for k, v in (data or {}).items()},
                 token=token,
             )
+
             messaging.send(message)
+
+        except messaging.UnregisteredError:
+            print("Removing unregistered token:", token)
+            sb_delete("push_tokens", {"token": f"eq.{token}"})
+
+        except messaging.InvalidArgumentError:
+            print("Removing invalid token:", token)
+            sb_delete("push_tokens", {"token": f"eq.{token}"})
+
         except Exception as e:
-            print("FCM send error:", e)
+            print("FCM send error (kept token):", e)
+
 
 
 # ---------- Supabase REST Setup ----------
@@ -258,54 +270,126 @@ def aurora_notification_job():
 
         time.sleep(60 * 60)  # run every hour
 
-
-
 def scheduled_event_notification_job():
     while True:
         try:
-            now = datetime.utcnow()
-
-            # Fetch events not yet notified
             events = sb_get(
                 "user_events",
                 {
-                    "notified_at": "is.null",
-                    "select": "*,users(id)"
+                    "select": "*,users(id,timezone)",
+                    "start": f"gte.{_utc_now_iso()}"
                 }
             )
 
             for event in events:
-                if not _should_notify(event, now):
+                user = event.get("users")
+                if not user:
                     continue
 
-                user_id = event.get("user_id")
-                if not user_id:
+                user_id = user.get("id")
+                timezone_str = user.get("timezone") or "UTC"
+
+                try:
+                    user_tz = ZoneInfo(timezone_str)
+                except Exception:
+                    user_tz = ZoneInfo("UTC")
+
+                now_local = datetime.now(user_tz)
+
+                start_utc = _parse_event_start(event)
+                if not start_utc:
                     continue
 
-                send_push(
-                    user_id,
-                    f"🌌 {event.get('title')}",
-                    "Happening soon — check visibility in Observe Pro.",
-                    {
-                        "type": event.get("type"),
-                        "eventId": event.get("event_id")
-                    }
-                )
+                if start_utc.tzinfo is None:
+                    start_utc = start_utc.replace(tzinfo=ZoneInfo("UTC"))
+                else:
+                    start_utc = start_utc.astimezone(ZoneInfo("UTC"))
 
-                sb_patch(
-                    "user_events",
-                    {"id": f"eq.{event['id']}"},
-                    {"notified_at": _utc_now_iso()}
-                )
+                start_local = start_utc.astimezone(user_tz)
+
+                event_type = event.get("type")
+
+                # =========================
+                # 🌌 AURORA
+                # =========================
+                if event_type == "aurora":
+
+                    if event.get("notified_4h_at") is None and now_local >= start_local - timedelta(hours=4):
+                        send_push(user_id, "🌌 Aurora Incoming",
+                                  "Aurora expected in ~4 hours.",
+                                  {"type": "aurora"})
+                        sb_patch("user_events",
+                                 {"id": f"eq.{event['id']}"},
+                                 {"notified_4h_at": _utc_now_iso()})
+
+                    if event.get("notified_30m_at") is None and now_local >= start_local - timedelta(minutes=30):
+                        send_push(user_id, "🌌 Aurora Soon",
+                                  "Aurora activity starting shortly.",
+                                  {"type": "aurora"})
+                        sb_patch("user_events",
+                                 {"id": f"eq.{event['id']}"},
+                                 {"notified_30m_at": _utc_now_iso()})
+
+                # =========================
+                # 🌠 METEOR
+                # =========================
+                elif event_type == "meteor":
+
+                    if event.get("notified_12h_at") is None and now_local >= start_local - timedelta(hours=12):
+                        send_push(user_id, f"🌠 {event.get('title')}",
+                                  "Meteor shower peak in ~12 hours.",
+                                  {"type": "meteor"})
+                        sb_patch("user_events",
+                                 {"id": f"eq.{event['id']}"},
+                                 {"notified_12h_at": _utc_now_iso()})
+
+                    if event.get("notified_1h_at") is None and now_local >= start_local - timedelta(hours=1):
+                        send_push(user_id, f"🌠 {event.get('title')}",
+                                  "Meteor shower peak in ~1 hour.",
+                                  {"type": "meteor"})
+                        sb_patch("user_events",
+                                 {"id": f"eq.{event['id']}"},
+                                 {"notified_1h_at": _utc_now_iso()})
+
+                # =========================
+                # 🌑 ECLIPSE / ☄ COMET / ✨ ALIGNMENT
+                # =========================
+                elif event_type in ("eclipse", "comet", "alignment"):
+
+                    if event.get("notified_24h_at") is None and now_local >= start_local - timedelta(hours=24):
+                        send_push(user_id, f"🌌 {event.get('title')}",
+                                  "Event begins in ~24 hours.",
+                                  {"type": event_type})
+                        sb_patch("user_events",
+                                 {"id": f"eq.{event['id']}"},
+                                 {"notified_24h_at": _utc_now_iso()})
+
+                    if event.get("notified_1h_at") is None and now_local >= start_local - timedelta(hours=1):
+                        send_push(user_id, f"🌌 {event.get('title')}",
+                                  "Event begins in ~1 hour.",
+                                  {"type": event_type})
+                        sb_patch("user_events",
+                                 {"id": f"eq.{event['id']}"},
+                                 {"notified_1h_at": _utc_now_iso()})
+
+                # =========================
+                # 🌙 MOON (optional 8am logic kept separate)
+                # =========================
+                elif event_type == "moon":
+
+                    if event.get("notified_1h_at") is None and now_local >= start_local - timedelta(hours=1):
+                        send_push(user_id, f"🌙 {event.get('title')}",
+                                  "Moon phase happening in ~1 hour.",
+                                  {"type": "moon"})
+                        sb_patch("user_events",
+                                 {"id": f"eq.{event['id']}"},
+                                 {"notified_1h_at": _utc_now_iso()})
 
         except Exception as e:
             print("Scheduled job error:", e)
 
-        time.sleep(60 * 30)
+        time.sleep(60 * 15)
 
-
-
-        
 
 # ---------- Load Moon Data Once ----------
 
