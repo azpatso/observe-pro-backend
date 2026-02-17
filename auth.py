@@ -1,5 +1,5 @@
 from flask_cors import CORS
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, redirect
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
@@ -276,9 +276,8 @@ def google_callback():
         json.dumps(payload).encode()
     ).decode()
 
-    return "", 302, {
-        "Location": f"com.observepro.space://auth?p={encoded}"
-    }
+    return redirect(f"com.observepro.space://auth?p={encoded}")
+    
 
 
 
