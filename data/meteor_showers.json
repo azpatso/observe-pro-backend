@@ -108,5 +108,18 @@
     "visibility": "Northern Hemisphere favored",
     "confidence": "medium",
     "source": "IMO"
-  }
+  },
+
+{
+  "id": "test-athens-meteor-2026",
+  "name": "Athens Test Meteor Shower",
+  "peak": "2026-02-18",
+  "start": "2026-02-17T23:00:00Z",
+  "end": "2026-02-17T23:30:00Z",
+  "best_time": "01:00 Athens time",
+  "visibility": "Greece test only",
+  "confidence": "high",
+  "source": "Internal Test"
+}
+
 ]
