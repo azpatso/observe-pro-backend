@@ -113,7 +113,11 @@
 {
   "id": "test-athens-meteor-2026",
   "name": "Athens Test Meteor Shower",
-  "peak": "2026-02-21",
+  "peak": "2026-02-22",
+  "start": "2026-02-22",
+  "end": "2026-02-22",
+  "best_time": "Late night",
+  "visibility": "Greece test only",
   "confidence": "high",
   "source": "Internal Test"
 }
