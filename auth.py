@@ -383,11 +383,9 @@ def verify_email():
     if not token:
         return "Invalid verification link", 400
 
-    # Fetch user manually using email_verification_token
     users = sb_get(
         "users",
         {
-            "select": "*",
             "email_verification_token": f"eq.{token}"
         }
     )
@@ -397,7 +395,6 @@ def verify_email():
 
     user = users[0]
 
-    # Update user as verified
     sb_patch(
         "users",
         {"id": f"eq.{user['id']}"},
@@ -407,7 +404,7 @@ def verify_email():
         }
     )
 
-    return redirect("https://observe-pro-frontend.onrender.com/#/login?verified=1")
+    return "Email verified successfully. You can now log in."
 
 # ============================================================
 # DELETE ACCOUNT
