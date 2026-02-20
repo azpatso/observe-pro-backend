@@ -130,6 +130,8 @@ def register():
 
     user_id = str(uuid.uuid4())
 
+    verification_token = str(uuid.uuid4())
+
     sb_post("users", {
         "id": user_id,
         "email": email,
@@ -142,15 +144,14 @@ def register():
         "terms_accepted_at": terms_accepted_at,
         "terms_version": TERMS_VERSION,
         "privacy_version": PRIVACY_VERSION,
-        "profile_complete": True
+        "profile_complete": True,
+        "email_verified": False,
+        "email_verification_token": verification_token
     })
 
 
     return jsonify({
-        "id": user_id,
-        "email": email,
-        "city": city,
-        "country": country
+        "message": "Account created. Please check your email to verify your account."
     }), 201
 
 
@@ -176,6 +177,9 @@ def login():
 
     if user.get("auth_provider") == "google":
         return jsonify({"error": "Use Google login for this account"}), 401
+    
+    if not user.get("email_verified"):
+        return jsonify({"error": "Please verify your email before logging in."}), 403
 
     if not check_password_hash(user.get("password_hash", ""), password):
         return jsonify({"error": "Invalid email or password"}), 401
@@ -329,6 +333,28 @@ def complete_profile():
 
     return jsonify({"success": True})
 
+@auth_bp.route("/verify-email")
+def verify_email():
+    token = request.args.get("token")
+    if not token:
+        return "Invalid verification link", 400
+
+    users = sb_get("users", {"email_verification_token": f"eq.{token}"})
+    if not users:
+        return "Invalid or expired verification link", 400
+
+    user = users[0]
+
+    sb_patch(
+        "users",
+        {"id": f"eq.{user['id']}"},
+        {
+            "email_verified": True,
+            "email_verification_token": None
+        }
+    )
+
+    return redirect("https://observe-pro-frontend.onrender.com/#/login?verified=1")
 
 # ============================================================
 # DELETE ACCOUNT
