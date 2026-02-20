@@ -441,11 +441,23 @@ def verify_email():
     user = users[0]
 
     # ⏳ Check expiration
+    from datetime import timezone
+
     expires_at = user.get("email_verification_expires_at")
+
     if expires_at:
-        exp = datetime.fromisoformat(expires_at.replace("Z", ""))
-        if datetime.utcnow() > exp:
-            return "Verification link has expired. Please request a new one.", 400
+        try:
+            # Handle both Z and +00:00 formats safely
+            exp = datetime.fromisoformat(
+                expires_at.replace("Z", "+00:00")
+            )
+
+            if datetime.now(timezone.utc) > exp:
+                return "Verification link has expired. Please request a new one.", 400
+
+        except Exception as e:
+            print("Expiration parse error:", e)
+            return "Invalid verification timestamp.", 400
 
     sb_patch(
         "users",
