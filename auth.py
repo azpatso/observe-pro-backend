@@ -267,7 +267,9 @@ def google_callback():
             "google_id": google_id,
             "auth_provider": "google",
             "created_at": datetime.utcnow().isoformat() + "Z",
-            "profile_complete": False
+            "profile_complete": False,
+            "email_verified": True,
+            "email_verification_token": None
         })
 
         profile_complete = False
@@ -335,21 +337,26 @@ def complete_profile():
 
 @auth_bp.route("/verify-email")
 def verify_email():
-    token = request.args.get("token")
+    token = (request.args.get("token") or "").strip()
+
     if not token:
         return "Invalid verification link", 400
 
+    # Fetch user manually using email_verification_token
     users = sb_get(
         "users",
         {
+            "select": "*",
             "email_verification_token": f"eq.{token}"
         }
     )
+
     if not users:
         return "Invalid or expired verification link", 400
 
     user = users[0]
 
+    # Update user as verified
     sb_patch(
         "users",
         {"id": f"eq.{user['id']}"},
