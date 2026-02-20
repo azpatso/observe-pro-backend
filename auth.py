@@ -12,6 +12,47 @@ import json
 auth_bp = Blueprint("auth", __name__)
 CORS(auth_bp)
 
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
+
+def send_verification_email(to_email, token):
+    if not RESEND_API_KEY:
+        print("RESEND_API_KEY not set")
+        return
+
+    verify_url = f"https://observe-pro-backend.onrender.com/api/auth/verify-email?token={token}"
+
+    html_content = f"""
+    <h2>Verify your Observe Pro account</h2>
+    <p>Click below to verify your email:</p>
+    <p>
+        <a href="{verify_url}"
+           style="background:#000;color:#fff;padding:10px 18px;text-decoration:none;border-radius:6px;">
+           Verify Email
+        </a>
+    </p>
+    <p>If you didn’t create this account, ignore this email.</p>
+    """
+
+    try:
+        response = requests.post(
+            "https://api.resend.com/emails",
+            headers={
+                "Authorization": f"Bearer {RESEND_API_KEY}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "from": "Observe Pro <info@protosdigital.pro>",
+                "to": to_email,
+                "subject": "Verify your Observe Pro account",
+                "html": html_content,
+            },
+            timeout=10,
+        )
+
+        print("Resend response:", response.status_code, response.text)
+
+    except Exception as e:
+        print("Email send failed:", e)
 # ============================================================
 # Supabase REST Setup
 # ============================================================
@@ -149,7 +190,7 @@ def register():
         "email_verification_token": verification_token
     })
 
-
+    send_verification_email(email, verification_token)
     return jsonify({
         "message": "Account created. Please check your email to verify your account."
     }), 201
