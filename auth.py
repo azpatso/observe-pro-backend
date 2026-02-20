@@ -339,7 +339,12 @@ def verify_email():
     if not token:
         return "Invalid verification link", 400
 
-    users = sb_get("users", {"email_verification_token": f"eq.{token}"})
+    users = sb_get(
+        "users",
+        {
+            "email_verification_token": f"eq.{token}"
+        }
+    )
     if not users:
         return "Invalid or expired verification link", 400
 
