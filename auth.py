@@ -469,7 +469,10 @@ def verify_email():
         }
     )
 
-    return redirect("https://observe-pro-frontend.onrender.com/#/login?verified=1")
+    return """
+    <h2>Email verified successfully ✅</h2>
+    <p>You can now return to the Observe Pro app and log in.</p>
+    """
 
 # ============================================================
 # DELETE ACCOUNT
