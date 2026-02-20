@@ -1,6 +1,6 @@
 from flask_cors import CORS
 from flask import Blueprint, request, jsonify, redirect
-from datetime import datetime
+from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import uuid
@@ -22,16 +22,58 @@ def send_verification_email(to_email, token):
     verify_url = f"https://observe-pro-backend.onrender.com/api/auth/verify-email?token={token}"
 
     html_content = f"""
-    <h2>Verify your Observe Pro account</h2>
-    <p>Click below to verify your email:</p>
-    <p>
-        <a href="{verify_url}"
-           style="background:#000;color:#fff;padding:10px 18px;text-decoration:none;border-radius:6px;">
-           Verify Email
-        </a>
-    </p>
-    <p>If you didn’t create this account, ignore this email.</p>
-    """
+    <!DOCTYPE html>
+    <html>
+    <body style="margin:0;padding:0;background:#0d1117;font-family:Arial,sans-serif;">
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td align="center" style="padding:40px 0;">
+            <table width="600" cellpadding="0" cellspacing="0" style="background:#161b22;border-radius:10px;padding:40px;color:#ffffff;">
+          
+              <tr>
+                <td align="center" style="font-size:28px;font-weight:bold;">
+                  🌌 Observe Pro
+                </td>
+              </tr>
+
+              <tr>
+                <td style="padding:30px 0 10px 0;font-size:20px;">
+                  Verify your email address
+                </td>
+              </tr>
+
+              <tr>
+                <td style="color:#c9d1d9;font-size:14px;line-height:1.6;">
+                  Thanks for creating an account.
+                  Please confirm your email address by clicking the button below.
+                  This link will expire in <strong>24 hours</strong>.
+                </td>
+              </tr>
+
+              <tr>
+                <td align="center" style="padding:30px 0;">
+                  <a href="{verify_url}"
+                     style="background:#238636;color:white;padding:14px 28px;
+                            text-decoration:none;border-radius:8px;font-weight:bold;
+                            display:inline-block;">
+                     Verify Email
+                 </a>
+               </td>
+             </tr>
+
+             <tr>
+               <td style="color:#8b949e;font-size:12px;">
+                 If you didn’t create this account, you can safely ignore this email.
+               </td>
+             </tr>
+
+           </table>
+         </td>
+       </tr>
+     </table>
+   </body>
+   </html>
+   """
 
     try:
         response = requests.post(
@@ -173,6 +215,8 @@ def register():
 
     verification_token = str(uuid.uuid4())
 
+    expires_at = datetime.utcnow() + timedelta(hours=24)
+
     sb_post("users", {
         "id": user_id,
         "email": email,
@@ -187,7 +231,8 @@ def register():
         "privacy_version": PRIVACY_VERSION,
         "profile_complete": True,
         "email_verified": False,
-        "email_verification_token": verification_token
+        "email_verification_token": verification_token,
+        "email_verification_expires_at": expires_at.isoformat() + "Z"
     })
 
     send_verification_email(email, verification_token)
@@ -395,16 +440,24 @@ def verify_email():
 
     user = users[0]
 
+    # ⏳ Check expiration
+    expires_at = user.get("email_verification_expires_at")
+    if expires_at:
+        exp = datetime.fromisoformat(expires_at.replace("Z", ""))
+        if datetime.utcnow() > exp:
+            return "Verification link has expired. Please request a new one.", 400
+
     sb_patch(
         "users",
         {"id": f"eq.{user['id']}"},
         {
             "email_verified": True,
-            "email_verification_token": None
+            "email_verification_token": None,
+            "email_verification_expires_at": None
         }
     )
 
-    return "Email verified successfully. You can now log in."
+    return redirect("https://observe-pro-frontend.onrender.com/#/login?verified=1")
 
 # ============================================================
 # DELETE ACCOUNT
