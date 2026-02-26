@@ -21,7 +21,7 @@
       "end": "2026-02-05T23:59:59Z"
     },
     "closest_approach": "2026-02-17",
-    "notes": "Best in late January. Expected magnitude around 8; too faint for naked eye, but a good binocular target under dark skies.",
+    "description": "Best in late January. Expected magnitude around 8; too faint for naked eye, but a good binocular target under dark skies.",
     "tags": ["comet", "wierzchos", "telescope_required"]
   },
 
@@ -47,7 +47,7 @@
       "end": "2026-01-12T23:59:59Z"
     },
     "closest_approach": "2026-01-04",
-    "notes": "A faint periodic comet peaking in early January. Expected around magnitude 10, requiring a small telescope or smart telescope.",
+    "description": "A faint periodic comet peaking in early January. Expected around magnitude 10, requiring a small telescope or smart telescope.",
     "tags": ["comet", "schaumasse", "telescope_required"]
   },
 
@@ -73,7 +73,7 @@
       "end": "2026-03-25T23:59:59Z"
     },
     "closest_approach": "2026-03-15",
-    "notes": "Gradual brightening through March. Remains faint and best suited for telescope observers.",
+    "description": "Gradual brightening through March. Remains faint and best suited for telescope observers.",
     "tags": ["comet", "howell", "telescope_required"]
   },
 
@@ -99,7 +99,7 @@
       "end": "2026-05-01T23:59:59Z"
     },
     "closest_approach": "2026-04-26",
-    "notes": "The wildcard comet of 2026. Brightness predictions vary widely; binoculars are strongly recommended, with naked-eye visibility possible if it brightens significantly.",
+    "description": "The wildcard comet of 2026. Brightness predictions vary widely; binoculars are strongly recommended, with naked-eye visibility possible if it brightens significantly.",
     "tags": ["comet", "panstarrs", "naked_eye_possible", "binoculars_likely"]
   },
 
@@ -120,7 +120,7 @@
     "confidence": "high",
     "source": "Astronomical observations",
     "best_observation_date": "2026-06-01T00:00:00Z",
-    "notes": "An interstellar object passing through the Solar System in 2026. Observed around magnitude 11–12, making it a telescope-only target. Of high scientific interest.",
+    "description": "An interstellar object passing through the Solar System in 2026. Observed around magnitude 11–12, making it a telescope-only target. Of high scientific interest.",
     "tags": ["comet", "interstellar", "atlas", "telescope_required"]
   },
 
@@ -146,7 +146,7 @@
       "end": "2026-08-15T23:59:59Z"
     },
     "closest_approach": "2026-07-25",
-    "notes": "A well-known periodic comet returning in summer 2026. Best observed in July and August with binoculars or a small telescope.",
+    "description": "A well-known periodic comet returning in summer 2026. Best observed in July and August with binoculars or a small telescope.",
     "tags": ["comet", "tempel_2", "binoculars_or_telescope"]
   }
 ]
