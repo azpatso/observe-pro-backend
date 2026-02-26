@@ -452,20 +452,16 @@ def get_meteor_events():
     events = []
 
     for m in METEOR_RAW:
-        start = m.get("peak_date") or m.get("start")
-
-        if not start:
-            continue
-
         events.append({
             "id": m["id"],
             "type": "meteor",
-            "title": f'{m["title"]} Peak',
-            "start": start,
-            "end": start,
+            "title": m["title"],  # 👈 use original title
+            "start": m["start"],
+            "end": m["end"],
             "visibility": m.get("visibility", "global"),
-            "confidence": m.get("confidence", "medium"),
-            "source": m.get("source", "IMO"),
+            "confidence": m.get("confidence"),
+            "source": m.get("source"),
+            "description": m.get("description"),  # 👈 THIS WAS MISSING
             "tags": m.get("tags", [])
         })
 
