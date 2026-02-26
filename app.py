@@ -452,22 +452,24 @@ def get_meteor_events():
     events = []
 
     for m in METEOR_RAW:
-        peak = m["peak"]
+        start = m.get("peak_date") or m.get("start")
+
+        if not start:
+            continue
 
         events.append({
             "id": m["id"],
             "type": "meteor",
-            "title": f'{m["name"]} Peak',
-            "start": f"{peak}T00:00:00Z",
-            "end": f"{peak}T23:59:59Z",
-            "visibility": "global",
-            "confidence": m["confidence"],
-            "source": m["source"],
-            "tags": ["meteor_shower", m["name"].lower()]
+            "title": f'{m["title"]} Peak',
+            "start": start,
+            "end": start,
+            "visibility": m.get("visibility", "global"),
+            "confidence": m.get("confidence", "medium"),
+            "source": m.get("source", "IMO"),
+            "tags": m.get("tags", [])
         })
 
     return [e for e in events if _is_future(e)]
-
 
 
 def get_comet_events():
