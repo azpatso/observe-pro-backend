@@ -211,7 +211,7 @@ def aurora_notification_job():
                 "user_events",
                 {
                     "type": "eq.aurora",
-                    "select": "user_id,users(id,lat,last_aurora_push_at)"
+                    "select": "user_id,users(id,lat,lon,last_aurora_push_at)"
                 }
             )
 
@@ -232,8 +232,13 @@ def aurora_notification_job():
                 processed.add(user_id)
 
                 lat = user.get("lat")
-                if lat is None:
+                lon = user.get("lon")
+
+                if lat is None or lon is None:
                     continue
+
+                forecast = get_aurora_forecast(lat, lon)
+                
 
                 # 12-hour cooldown check
                 last_push = user.get("last_aurora_push_at")
@@ -245,7 +250,7 @@ def aurora_notification_job():
                     except Exception:
                         pass
 
-                forecast = get_aurora_forecast(lat)
+                
 
                 if forecast.get("likely"):
                     send_push(
@@ -437,96 +442,11 @@ def build_moon_events():
 
 MOON_EVENTS = build_moon_events()
 
-# ---------- Data Providers ----------
+with open(DATA_DIR / "eclipses.json", "r", encoding="utf-8") as f:
+    ECLIPSES_RAW = json.load(f)
 
 def get_eclipse_events():
-    """
-    Real eclipse events from Jan 2026 to Jan 2028.
-    Includes solar and lunar eclipses.
-    Normalized to the app's event schema.
-    """
-
-    events = [
-        {
-            "id": "eclipse-2026-02-17-solar-annular",
-            "type": "eclipse",
-            "title": "Annular Solar Eclipse",
-            "start": "2026-02-17T00:00:00Z",
-            "end": "2026-02-17T23:59:59Z",
-            "visibility": "global",
-            "confidence": "high",
-            "source": "NASA Eclipse Catalog",
-            "tags": ["solar_eclipse", "annular"]
-        },
-        {
-            "id": "eclipse-2026-03-03-lunar-total",
-            "type": "eclipse",
-            "title": "Total Lunar Eclipse",
-            "start": "2026-03-03T00:00:00Z",
-            "end": "2026-03-03T23:59:59Z",
-            "visibility": "global",
-            "confidence": "high",
-            "source": "NASA Eclipse Catalog",
-            "tags": ["lunar_eclipse", "total"]
-        },
-        {
-            "id": "eclipse-2026-08-12-solar-total",
-            "type": "eclipse",
-            "title": "Total Solar Eclipse",
-            "start": "2026-08-12T00:00:00Z",
-            "end": "2026-08-12T23:59:59Z",
-            "visibility": "global",
-            "confidence": "high",
-            "source": "NASA Eclipse Catalog",
-            "tags": ["solar_eclipse", "total"]
-        },
-        {
-            "id": "eclipse-2026-08-28-lunar-partial",
-            "type": "eclipse",
-            "title": "Partial Lunar Eclipse",
-            "start": "2026-08-28T00:00:00Z",
-            "end": "2026-08-28T23:59:59Z",
-            "visibility": "global",
-            "confidence": "medium",
-            "source": "NASA Eclipse Catalog",
-            "tags": ["lunar_eclipse", "partial"]
-        },
-        {
-            "id": "eclipse-2027-02-06-solar-annular",
-            "type": "eclipse",
-            "title": "Annular Solar Eclipse",
-            "start": "2027-02-06T00:00:00Z",
-            "end": "2027-02-06T23:59:59Z",
-            "visibility": "global",
-            "confidence": "high",
-            "source": "NASA Eclipse Catalog",
-            "tags": ["solar_eclipse", "annular"]
-        },
-        {
-            "id": "eclipse-2027-02-20-lunar-penumbral",
-            "type": "eclipse",
-            "title": "Penumbral Lunar Eclipse",
-            "start": "2027-02-20T00:00:00Z",
-            "end": "2027-02-20T23:59:59Z",
-            "visibility": "global",
-            "confidence": "low",
-            "source": "NASA Eclipse Catalog",
-            "tags": ["lunar_eclipse", "penumbral"]
-        },
-        {
-            "id": "eclipse-2027-08-02-solar-total",
-            "type": "eclipse",
-            "title": "Total Solar Eclipse",
-            "start": "2027-08-02T00:00:00Z",
-            "end": "2027-08-02T23:59:59Z",
-            "visibility": "global",
-            "confidence": "high",
-            "source": "NASA Eclipse Catalog",
-            "tags": ["solar_eclipse", "total"]
-        }
-    ]
-
-    return [e for e in events if _is_future(e)]
+    return [e for e in ECLIPSES_RAW if _is_future(e)]
 
 def get_meteor_events():
     events = []
@@ -711,66 +631,103 @@ def summarize_kp_next_24h(kp_rows):
 
     return max_kp, max_entry
 
-def get_aurora_forecast(lat):
+def get_aurora_forecast(lat, lon):
     """
-    Core aurora logic extracted so it can be reused by /api/aurora
-    and /api/upcoming.
+    Aurora forecast with:
+    - Geomagnetic strength score
+    - Sky visibility score (cloud-based)
     """
+
     kp_rows = fetch_noaa_kp_forecast_cached()
     max_kp, max_entry = summarize_kp_next_24h(kp_rows)
 
     req_kp = required_kp_for_lat(lat)
-    # Find next future time where Kp meets requirement
-    next_possible = None
     now = datetime.utcnow()
 
-    for row in kp_rows[1:]:
-        t_str, kp_str, *_ = row
-        try:
-            t = datetime.strptime(t_str, "%Y-%m-%d %H:%M:%S")
-            kp = float(kp_str)
+    # --- Geomagnetic Score ---
+    geomagnetic_score = 0
+    geomagnetic_state = "Weak"
 
-            if t > now and kp >= req_kp:
-                next_possible = t.strftime("%Y-%m-%d")
-                break
-        except Exception:
-            continue
+    if max_kp is not None:
+        ratio = max_kp / req_kp if req_kp > 0 else 0
 
+        if ratio < 0.8:
+            geomagnetic_score = int(ratio * 30)
+            geomagnetic_state = "Weak"
+        elif ratio < 1:
+            geomagnetic_score = 40
+            geomagnetic_state = "Borderline"
+        elif ratio < 1.3:
+            geomagnetic_score = 65
+            geomagnetic_state = "Good"
+        else:
+            geomagnetic_score = 85
+            geomagnetic_state = "Strong"
 
-    if max_kp is None:
-        return {
-        "lat": lat,
-        "required_kp": req_kp,
-        "kp_max_next_24h": None,
-        "likely": False,
-        "next_possible": next_possible,
-        "message": "No Kp forecast available right now.",
-        "peak": None,
-        "source": "NOAA SWPC",
-        "cached_at": _load_aurora_cache().get("cached_at") if _load_aurora_cache() else None
-    }
+    # --- Weather Score ---
+    weather = get_weather_forecast(lat, lon)
 
+    night_hours = [
+        h for h in weather.get("hours", [])
+        if h.get("is_night")
+        and now <= _parse_iso(h["time"]) <= now + timedelta(hours=24)
+    ]
 
-    likely = max_kp >= req_kp
+    avg_cloud = None
+    sky_score = None
+    sky_state = "Unknown"
 
-    msg = (
-        f"High chance tonight/next 24h (Kp max {max_kp:.2f} ≥ {req_kp})"
-        if likely
-        else f"Low chance (Kp max {max_kp:.2f} < {req_kp})"
-    )
+    if night_hours:
+        avg_cloud = sum(h["cloud"] for h in night_hours) / len(night_hours)
+        sky_score = max(0, min(100, int(100 - avg_cloud)))
+
+        if avg_cloud < 20:
+            sky_state = "Clear"
+        elif avg_cloud < 50:
+            sky_state = "Partly Cloudy"
+        elif avg_cloud < 75:
+            sky_state = "Mostly Cloudy"
+        else:
+            sky_state = "Overcast"
+
+    # --- Message Logic ---
+    if geomagnetic_score >= 60:
+        overall = "Strong geomagnetic activity"
+    elif geomagnetic_score >= 40:
+        overall = "Moderate geomagnetic activity"
+    else:
+        overall = "Low geomagnetic activity"
+
+    if sky_score is not None and sky_score < 40:
+        overall += " but cloud cover may limit visibility."
 
     return {
-    "lat": lat,
-    "required_kp": req_kp,
-    "kp_max_next_24h": max_kp,
-    "peak": max_entry,
-    "likely": likely,
-    "next_possible": next_possible,
-    "message": msg,
-    "source": "NOAA SWPC",
-    "cached_at": _load_aurora_cache().get("cached_at") if _load_aurora_cache() else None
-}
+        "lat": lat,
+        "lon": lon,
 
+        # Backward compatibility
+        "kp_max_next_24h": max_kp,
+        "required_kp": req_kp,
+        "likely": max_kp is not None and max_kp >= req_kp,
+
+        # New structured data
+        "geomagnetic": {
+            "kp_max": max_kp,
+            "required_kp": req_kp,
+            "score": geomagnetic_score,
+            "state": geomagnetic_state
+        },
+        "sky": {
+            "avg_cloud": avg_cloud,
+            "score": sky_score,
+            "state": sky_state
+        },
+
+        "peak": max_entry,
+        "message": overall,
+        "source": "NOAA SWPC + Open-Meteo",
+        "cached_at": _load_aurora_cache().get("cached_at") if _load_aurora_cache() else None
+    }
 
 
 def aurora_forecast_to_upcoming_event(forecast):
@@ -1197,7 +1154,11 @@ def export_calendar(event_id):
 
     if not event:
         return jsonify({"error": "Event not found"}), 404
-
+    # 🚫 Block aurora calendar export
+    if event and event.get("type") == "aurora":
+        return jsonify({
+            "error": "Aurora cannot be exported to calendar because it uses a 24-hour rolling forecast updated hourly."
+        }), 400
     ics = generate_ics(event)
 
     return (
@@ -1227,13 +1188,15 @@ def meteors():
 
 @app.route("/api/aurora")
 def aurora():
-    from flask import request
-
     lat = request.args.get("lat", type=float)
-    if lat is None:
-        return jsonify({"error": "lat query param is required, e.g. /api/aurora?lat=55.9"}), 400
+    lon = request.args.get("lon", type=float)
 
-    forecast = get_aurora_forecast(lat)
+    if lat is None or lon is None:
+        return jsonify({
+            "error": "lat and lon query params are required, e.g. /api/aurora?lat=55.9&lon=-3.2"
+        }), 400
+
+    forecast = get_aurora_forecast(lat, lon)
     return jsonify(forecast)
 
 @app.route("/api/comets")
@@ -1279,7 +1242,7 @@ def upcoming_events():
     if lat is not None and lon is not None:
         weather = get_weather_forecast(lat, lon)
 
-        forecast = get_aurora_forecast(lat)
+        forecast = get_aurora_forecast(lat, lon)
         aurora_event = aurora_forecast_to_upcoming_event(forecast)
         if aurora_event:
             all_events.append(aurora_event)
@@ -1311,7 +1274,7 @@ def start_background_jobs():
     threading.Thread(
         target=aurora_notification_job,
         daemon=True
-    ).start()
+     ).start()
 
     threading.Thread(
         target=scheduled_event_notification_job,

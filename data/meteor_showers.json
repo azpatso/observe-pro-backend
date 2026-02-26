@@ -1,123 +1,200 @@
 [
   {
     "id": "lyrids-2026",
-    "name": "Lyrids",
-    "peak": "2026-04-22",
-    "start": "2026-04-16",
-    "end": "2026-04-25",
-    "best_time": "After midnight",
+    "type": "meteor_shower",
+    "title": "Lyrids",
+    "event_window": {
+      "start": "2026-04-16T00:00:00Z",
+      "end": "2026-04-25T23:59:59Z"
+    },
+    "start": "2026-04-16T00:00:00Z",
+    "end": "2026-04-25T23:59:59Z",
+    "peak_date": "2026-04-22T00:00:00Z",
+    "best_observation_date": "2026-04-22T00:00:00Z",
+    "best_time_window": "after_midnight",
+    "is_all_day": false,
+    "equipment": "naked_eye",
     "visibility": "global",
+    "visibility_model": "weather_sensitive",
     "confidence": "high",
-    "source": "IMO"
+    "source": "IMO",
+    "description": "The Lyrids are a long-observed annual shower producing moderately fast meteors often around 18–20 per hour at peak under dark skies. They originate from comet C/1861 G1 (Thatcher) and are best seen after midnight in late April.",
+    "tags": ["meteor", "lyrids", "naked_eye"]
   },
   {
     "id": "eta-aquariids-2026",
-    "name": "Eta Aquariids",
-    "peak": "2026-05-06",
-    "start": "2026-04-19",
-    "end": "2026-05-28",
-    "best_time": "Pre-dawn",
-    "visibility": "Southern Hemisphere favored",
+    "type": "meteor_shower",
+    "title": "Eta Aquariids",
+    "event_window": {
+      "start": "2026-04-19T00:00:00Z",
+      "end": "2026-05-28T23:59:59Z"
+    },
+    "start": "2026-04-19T00:00:00Z",
+    "end": "2026-05-28T23:59:59Z",
+    "peak_date": "2026-05-06T00:00:00Z",
+    "best_observation_date": "2026-05-06T00:00:00Z",
+    "best_time_window": "pre_dawn",
+    "is_all_day": false,
+    "equipment": "naked_eye",
+    "visibility": "southern_hemisphere_favored",
+    "visibility_model": "weather_sensitive",
     "confidence": "high",
-    "source": "IMO"
+    "source": "IMO",
+    "description": "The Eta Aquariids are known for very fast meteors and originate from Halley’s Comet. Best viewed in the pre-dawn hours, they are strongest in the Southern Hemisphere but still visible at lower rates farther north.",
+    "tags": ["meteor", "eta_aquariids", "naked_eye"]
   },
   {
     "id": "southern-delta-aquariids-2026",
-    "name": "Southern Delta Aquariids",
-    "peak": "2026-07-30",
-    "start": "2026-07-12",
-    "end": "2026-08-23",
-    "best_time": "After midnight",
-    "visibility": "Southern Hemisphere favored",
+    "type": "meteor_shower",
+    "title": "Southern Delta Aquariids",
+    "event_window": {
+      "start": "2026-07-12T00:00:00Z",
+      "end": "2026-08-23T23:59:59Z"
+    },
+    "start": "2026-07-12T00:00:00Z",
+    "end": "2026-08-23T23:59:59Z",
+    "peak_date": "2026-07-30T00:00:00Z",
+    "best_observation_date": "2026-07-30T00:00:00Z",
+    "best_time_window": "after_midnight",
+    "is_all_day": false,
+    "equipment": "naked_eye",
+    "visibility": "southern_hemisphere_favored",
+    "visibility_model": "weather_sensitive",
     "confidence": "high",
-    "source": "IMO"
+    "source": "IMO",
+    "description": "The Southern Delta Aquariids produce a steady stream of meteors visible from mid-southern latitudes. Their radiant near the constellation Aquarius makes them best after midnight in the peak period.",
+    "tags": ["meteor", "delta_aquariids", "naked_eye"]
   },
   {
     "id": "perseids-2026",
-    "name": "Perseids",
-    "peak": "2026-08-12",
-    "start": "2026-07-17",
-    "end": "2026-08-24",
-    "best_time": "After midnight",
-    "visibility": "Northern Hemisphere favored",
+    "type": "meteor_shower",
+    "title": "Perseids",
+    "event_window": {
+      "start": "2026-07-17T00:00:00Z",
+      "end": "2026-08-24T23:59:59Z"
+    },
+    "start": "2026-07-17T00:00:00Z",
+    "end": "2026-08-24T23:59:59Z",
+    "peak_date": "2026-08-12T00:00:00Z",
+    "best_observation_date": "2026-08-12T00:00:00Z",
+    "best_time_window": "after_midnight",
+    "is_all_day": false,
+    "equipment": "naked_eye",
+    "visibility": "northern_hemisphere_favored",
+    "visibility_model": "weather_sensitive",
     "confidence": "high",
-    "source": "IMO"
+    "source": "IMO",
+    "description": "The Perseids are one of the most popular and reliable meteor showers, producing bright and frequent meteors in mid-August. They emanate from debris left by comet Swift–Tuttle and are spectacular after midnight.",
+    "tags": ["meteor", "perseids", "naked_eye"]
   },
   {
     "id": "orionids-2026",
-    "name": "Orionids",
-    "peak": "2026-10-21",
-    "start": "2026-10-02",
-    "end": "2026-11-07",
-    "best_time": "After midnight",
+    "type": "meteor_shower",
+    "title": "Orionids",
+    "event_window": {
+      "start": "2026-10-02T00:00:00Z",
+      "end": "2026-11-07T23:59:59Z"
+    },
+    "start": "2026-10-02T00:00:00Z",
+    "end": "2026-11-07T23:59:59Z",
+    "peak_date": "2026-10-21T00:00:00Z",
+    "best_observation_date": "2026-10-21T00:00:00Z",
+    "best_time_window": "after_midnight",
+    "is_all_day": false,
+    "equipment": "naked_eye",
     "visibility": "global",
+    "visibility_model": "weather_sensitive",
     "confidence": "high",
-    "source": "IMO"
+    "source": "IMO",
+    "description": "Orionids originate from Halley’s Comet and are noted for swift meteors and occasional bright fireballs. They are best seen after midnight when their radiant rises high in the sky.",
+    "tags": ["meteor", "orionids", "naked_eye"]
   },
   {
     "id": "southern-taurids-2026",
-    "name": "Southern Taurids",
-    "peak": "2026-11-05",
-    "start": "2026-09-23",
-    "end": "2026-12-02",
-    "best_time": "Late night",
-    "visibility": "Southern Hemisphere favored",
+    "type": "meteor_shower",
+    "title": "Southern Taurids",
+    "event_window": {
+      "start": "2026-09-23T00:00:00Z",
+      "end": "2026-12-02T23:59:59Z"
+    },
+    "start": "2026-09-23T00:00:00Z",
+    "end": "2026-12-02T23:59:59Z",
+    "peak_date": "2026-11-05T00:00:00Z",
+    "best_observation_date": "2026-11-05T00:00:00Z",
+    "best_time_window": "late_night",
+    "is_all_day": false,
+    "equipment": "naked_eye",
+    "visibility": "southern_hemisphere_favored",
+    "visibility_model": "weather_sensitive",
     "confidence": "high",
-    "source": "IMO"
+    "source": "IMO",
+    "description": "The Southern Taurids are a long-running shower with slow, bright meteors. Best seen late at night, they are known for occasional fireballs more than high rates.",
+    "tags": ["meteor", "southern_taurids", "naked_eye"]
   },
   {
     "id": "northern-taurids-2026",
-    "name": "Northern Taurids",
-    "peak": "2026-11-12",
-    "start": "2026-10-13",
-    "end": "2026-12-02",
-    "best_time": "Late night",
-    "visibility": "Northern Hemisphere favored",
+    "type": "meteor_shower",
+    "title": "Northern Taurids",
+    "event_window": {
+      "start": "2026-10-13T00:00:00Z",
+      "end": "2026-12-02T23:59:59Z"
+    },
+    "start": "2026-10-13T00:00:00Z",
+    "end": "2026-12-02T23:59:59Z",
+    "peak_date": "2026-11-12T00:00:00Z",
+    "best_observation_date": "2026-11-12T00:00:00Z",
+    "best_time_window": "late_night",
+    "is_all_day": false,
+    "equipment": "naked_eye",
+    "visibility": "northern_hemisphere_favored",
+    "visibility_model": "weather_sensitive",
     "confidence": "high",
-    "source": "IMO"
+    "source": "IMO",
+    "description": "The Northern Taurids are similar to their southern counterpart but favor northern latitudes. They are known for occasional bright meteors and fireballs over a long seasonal window.",
+    "tags": ["meteor", "northern_taurids", "naked_eye"]
   },
   {
     "id": "leonids-2026",
-    "name": "Leonids",
-    "peak": "2026-11-17",
-    "start": "2026-11-06",
-    "end": "2026-11-30",
-    "best_time": "Pre-dawn",
+    "type": "meteor_shower",
+    "title": "Leonids",
+    "event_window": {
+      "start": "2026-11-06T00:00:00Z",
+      "end": "2026-11-30T23:59:59Z"
+    },
+    "start": "2026-11-06T00:00:00Z",
+    "end": "2026-11-30T23:59:59Z",
+    "peak_date": "2026-11-17T00:00:00Z",
+    "best_observation_date": "2026-11-17T00:00:00Z",
+    "best_time_window": "pre_dawn",
+    "is_all_day": false,
+    "equipment": "naked_eye",
     "visibility": "global",
+    "visibility_model": "weather_sensitive",
     "confidence": "high",
-    "source": "IMO"
+    "source": "IMO",
+    "description": "The Leonids are famous for occasional storms, though most years produce a moderate display. Peak activity comes when Earth crosses debris left by comet Tempel–Tuttle, often seen best before dawn.",
+    "tags": ["meteor", "leonids", "naked_eye"]
   },
   {
     "id": "geminids-2026",
-    "name": "Geminids",
-    "peak": "2026-12-14",
-    "start": "2026-12-04",
-    "end": "2026-12-17",
-    "best_time": "After midnight",
+    "type": "meteor_shower",
+    "title": "Geminids",
+    "event_window": {
+      "start": "2026-12-04T00:00:00Z",
+      "end": "2026-12-17T23:59:59Z"
+    },
+    "start": "2026-12-04T00:00:00Z",
+    "end": "2026-12-17T23:59:59Z",
+    "peak_date": "2026-12-14T00:00:00Z",
+    "best_observation_date": "2026-12-14T00:00:00Z",
+    "best_time_window": "after_midnight",
+    "is_all_day": false,
+    "equipment": "naked_eye",
     "visibility": "global",
+    "visibility_model": "weather_sensitive",
     "confidence": "high",
-    "source": "IMO"
-  },
-  {
-    "id": "ursids-2026",
-    "name": "Ursids",
-    "peak": "2026-12-22",
-    "start": "2026-12-17",
-    "end": "2026-12-26",
-    "best_time": "Late night",
-    "visibility": "Northern Hemisphere favored",
-    "confidence": "medium",
-    "source": "IMO"
-  },
-
-{
-  "id": "test-athens-meteor-2026",
-  "name": "Athens Test Meteor Shower",
-  "peak": "2026-02-21",
-  "confidence": "high",
-  "source": "Internal Test"
-}
-
-
-
+    "source": "IMO",
+    "description": "The Geminids are among the richest annual showers, producing numerous bright meteors each December. Their origin in an asteroid stream makes them unique and easy to spot after midnight.",
+    "tags": ["meteor", "geminids", "naked_eye"]
+  }
 ]
