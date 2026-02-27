@@ -178,5 +178,35 @@
     "source": "NASA Sky Events",
     "description": "The Moon passes close to Saturn in the evening sky, forming an attractive naked-eye pairing. While Saturn’s rings require a telescope to see in detail, the conjunction itself is easily visible without optical aid.",
     "tags": ["moon", "saturn", "evening", "naked_eye"]
-  }
+  },
+  {
+  "id": "align-test-1-uk",
+  "type": "alignment",
+  "title": "TEST Alignment – Push 16:10",
+  "start": "2026-02-27T17:10:00Z",
+  "end": "2026-02-27T18:10:00Z",
+  "is_all_day": false,
+  "equipment": "naked_eye",
+  "visibility": "global",
+  "visibility_model": "geometric",
+  "confidence": "high",
+  "source": "Internal Test",
+  "description": "Test event to validate 1-hour push notification and local alarm scheduling in UK timezone.",
+  "tags": ["test", "alignment", "push_test"]
+},
+{
+  "id": "align-test-2-uk",
+  "type": "alignment",
+  "title": "TEST Alignment – Push 16:20",
+  "start": "2026-02-27T17:20:00Z",
+  "end": "2026-02-27T18:20:00Z",
+  "is_all_day": false,
+  "equipment": "naked_eye",
+  "visibility": "global",
+  "visibility_model": "geometric",
+  "confidence": "high",
+  "source": "Internal Test",
+  "description": "Second test event to validate independent push + alarm scheduling.",
+  "tags": ["test", "alignment", "push_test"]
+}
 ]
