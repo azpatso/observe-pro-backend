@@ -150,33 +150,33 @@
     "tags": ["moon", "venus", "evening", "romantic", "naked_eye"]
   },
   {
-    "id": "align-2027-08-19-planet-lineup",
-    "type": "alignment",
-    "title": "Five Planets Visible Before Dawn",
-    "start": "2027-08-19T00:00:00Z",
-    "end": "2027-08-25T23:59:59Z",
-    "is_all_day": true,
-    "equipment": "naked_eye",
-    "visibility": "global",
-    "visibility_model": "geometric",
-    "confidence": "medium",
-    "source": "Star Walk",
-    "description": "Several bright planets — including Mercury, Venus, Mars, Jupiter, and Saturn — will be visible before sunrise along the ecliptic. This planetary line-up spans a large section of the sky and can be observed with the naked eye under clear, dark conditions.",
-    "tags": ["planetary_parade", "dawn", "rare", "naked_eye"]
-  },
-  {
-    "id": "align-2028-01-05-moon-saturn",
-    "type": "alignment",
-    "title": "Moon and Saturn in Close Embrace",
-    "start": "2028-01-05T00:00:00Z",
-    "end": "2028-01-05T23:59:59Z",
-    "is_all_day": true,
-    "equipment": "naked_eye",
-    "visibility": "global",
-    "visibility_model": "geometric",
-    "confidence": "high",
-    "source": "NASA Sky Events",
-    "description": "The Moon passes close to Saturn in the evening sky, forming an attractive naked-eye pairing. While Saturn’s rings require a telescope to see in detail, the conjunction itself is easily visible without optical aid.",
-    "tags": ["moon", "saturn", "evening", "naked_eye"]
-  }
+  "id": "align-test-uk-1",
+  "type": "alignment",
+  "title": "TEST Alignment – Alarm ~18:38 UK",
+  "start": "2026-02-27T18:48:00Z",
+  "end": "2026-02-27T19:48:00Z",
+  "is_all_day": false,
+  "equipment": "naked_eye",
+  "visibility": "global",
+  "visibility_model": "geometric",
+  "confidence": "high",
+  "source": "Internal Test",
+  "description": "Alarm should fire at approximately 18:38 UK time.",
+  "tags": ["test", "alignment", "alarm_test"]
+},
+{
+  "id": "align-test-uk-2",
+  "type": "alignment",
+  "title": "TEST Alignment – Alarm ~18:43 UK",
+  "start": "2026-02-27T18:53:00Z",
+  "end": "2026-02-27T19:53:00Z",
+  "is_all_day": false,
+  "equipment": "naked_eye",
+  "visibility": "global",
+  "visibility_model": "geometric",
+  "confidence": "high",
+  "source": "Internal Test",
+  "description": "Alarm should fire at approximately 18:43 UK time.",
+  "tags": ["test", "alignment", "alarm_test"]
+}
 ]
