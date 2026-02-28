@@ -154,14 +154,14 @@
   "type": "alignment",
   "title": "TEST Alignment – Alarm 18:50 UK",
   "start": "2026-02-28T19:00:00Z",
-  "end": "2026-02-28T20:00:00Z",
+  "end": "2026-02-28T19:59:59Z",
   "is_all_day": false,
   "equipment": "naked_eye",
   "visibility": "global",
   "visibility_model": "geometric",
   "confidence": "high",
   "source": "Internal Test",
-  "description": "Alarm should fire at approximately 18:50 UK time.",
+  "description": "Test alignment event for 10-minute alarm verification.",
   "tags": ["test", "alignment", "alarm_test"]
 },
 {
@@ -169,14 +169,14 @@
   "type": "alignment",
   "title": "TEST Alignment – Alarm 18:55 UK",
   "start": "2026-02-28T19:05:00Z",
-  "end": "2026-02-28T20:05:00Z",
+  "end": "2026-02-28T20:04:59Z",
   "is_all_day": false,
   "equipment": "naked_eye",
   "visibility": "global",
   "visibility_model": "geometric",
   "confidence": "high",
   "source": "Internal Test",
-  "description": "Alarm should fire at approximately 18:55 UK time.",
+  "description": "Test alignment event for 10-minute alarm verification.",
   "tags": ["test", "alignment", "alarm_test"]
 }
 ]
