@@ -282,7 +282,7 @@ def scheduled_event_notification_job():
                 "user_events",
                 {
                     "select": "*,users(id,timezone)",
-                    "start": f"gte.{_utc_now_iso()}"
+                    "start": f"gte.{(datetime.utcnow() - timedelta(hours=2)).isoformat()}Z"
                 }
             )
 
