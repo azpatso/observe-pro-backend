@@ -1168,7 +1168,13 @@ def export_calendar(event_id):
         },
     )
 
-
+@app.route("/api/debug-alignments")
+def debug_alignments():
+    return jsonify({
+        "count": len(ALIGNMENTS_RAW),
+        "first_id": ALIGNMENTS_RAW[0]["id"] if ALIGNMENTS_RAW else None,
+        "file_path": str(DATA_DIR / "alignments.json")
+    })
 
 
 @app.route("/api/moon")
