@@ -392,6 +392,7 @@ def scheduled_event_notification_job():
 
         except Exception as e:
             print("Scheduled job error:", e)
+            print("🔥 SCHEDULER TICK", datetime.utcnow())
 
         time.sleep(60)
 
