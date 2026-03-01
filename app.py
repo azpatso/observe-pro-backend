@@ -393,7 +393,7 @@ def scheduled_event_notification_job():
         except Exception as e:
             print("Scheduled job error:", e)
 
-        time.sleep(60 * 15)
+        time.sleep(60)
 
 
 # ---------- Load Moon Data Once ----------
