@@ -148,5 +148,43 @@
     "closest_approach": "2026-07-25",
     "description": "A well-known periodic comet returning in summer 2026. Best observed in July and August with binoculars or a small telescope.",
     "tags": ["comet", "tempel_2", "binoculars_or_telescope"]
-  }
+  },
+  {
+  "id": "test-comet-howell-1750",
+  "type": "comet",
+  "title": "🚀 TEST Comet Howell – 1h Trigger",
+  "event_window": {
+    "start": "2026-03-01T17:50:00Z",
+    "end": "2026-03-01T18:10:00Z"
+  },
+  "start": "2026-03-01T17:50:00Z",
+  "end": "2026-03-01T18:10:00Z",
+  "is_all_day": false,
+  "equipment": "telescope",
+  "visibility": "global",
+  "visibility_model": "geometric",
+  "confidence": "high",
+  "source": "Internal test",
+  "description": "Push test – should fire at 16:50 (1h before).",
+  "tags": ["test", "push_test"]
+},
+{
+  "id": "test-comet-atlas-1755",
+  "type": "comet",
+  "title": "🚀 TEST Comet Atlas – 1h Trigger",
+  "event_window": {
+    "start": "2026-03-01T17:55:00Z",
+    "end": "2026-03-01T18:15:00Z"
+  },
+  "start": "2026-03-01T17:55:00Z",
+  "end": "2026-03-01T18:15:00Z",
+  "is_all_day": false,
+  "equipment": "telescope",
+  "visibility": "global",
+  "visibility_model": "geometric",
+  "confidence": "high",
+  "source": "Internal test",
+  "description": "Second push test – should fire at 16:55.",
+  "tags": ["test", "push_test"]
+}
 ]
