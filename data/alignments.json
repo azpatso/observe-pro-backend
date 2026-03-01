@@ -150,33 +150,33 @@
     "tags": ["moon", "venus", "evening", "romantic", "naked_eye"]
   },
   {
-  "id": "align-test-uk-1",
+  "id": "align-test-1445",
   "type": "alignment",
-  "title": "TEST Alignment – Alarm 20:10 UK",
-  "start": "2026-02-28T20:20:00Z",
-  "end": "2026-02-28T21:19:59Z",
+  "title": "🚨 TEST EVENT 14:45",
+  "start": "2026-02-28T14:45:00Z",
+  "end": "2026-02-28T15:00:00Z",
   "is_all_day": false,
   "equipment": "naked_eye",
   "visibility": "global",
   "visibility_model": "geometric",
   "confidence": "high",
   "source": "Internal Test",
-  "description": "Test alignment event for 10-minute alarm verification.",
-  "tags": ["test", "alignment", "alarm_test"]
+  "description": "Test alarm event scheduled for 14:45 UK time.",
+  "tags": ["test"]
 },
 {
-  "id": "align-test-uk-2",
+  "id": "align-test-1450",
   "type": "alignment",
-  "title": "TEST Alignment – Alarm 20:05 UK",
-  "start": "2026-02-28T20:15:00Z",
-  "end": "2026-02-28T21:14:59Z",
+  "title": "🚨 TEST EVENT 14:50",
+  "start": "2026-02-28T14:50:00Z",
+  "end": "2026-02-28T15:05:00Z",
   "is_all_day": false,
   "equipment": "naked_eye",
   "visibility": "global",
   "visibility_model": "geometric",
   "confidence": "high",
   "source": "Internal Test",
-  "description": "Test alignment event for 10-minute alarm verification.",
-  "tags": ["test", "alignment", "alarm_test"]
+  "description": "Test alarm event scheduled for 14:50 UK time.",
+  "tags": ["test"]
 }
 ]
