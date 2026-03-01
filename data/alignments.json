@@ -150,33 +150,33 @@
     "tags": ["moon", "venus", "evening", "romantic", "naked_eye"]
   },
   {
-  "id": "align-test-1",
+  "id": "align-test-1505",
   "type": "alignment",
-  "title": "🚨 TEST EVENT +15min",
-  "start": "2026-02-28T15:10:00Z",
-  "end": "2026-02-28T15:30:00Z",
+  "title": "🚨 TEST EVENT 15:05",
+  "start": "2026-02-28T15:05:00Z",
+  "end": "2026-02-28T15:20:00Z",
   "is_all_day": false,
   "equipment": "naked_eye",
   "visibility": "global",
   "visibility_model": "geometric",
   "confidence": "high",
   "source": "Internal Test",
-  "description": "Alarm test event.",
+  "description": "Alarm test event at 15:05 UK.",
   "tags": ["test"]
 },
 {
-  "id": "align-test-2",
+  "id": "align-test-1510",
   "type": "alignment",
-  "title": "🚨 TEST EVENT +20min",
-  "start": "2026-02-28T15:15:00Z",
-  "end": "2026-02-28T15:35:00Z",
+  "title": "🚨 TEST EVENT 15:10",
+  "start": "2026-02-28T15:10:00Z",
+  "end": "2026-02-28T15:25:00Z",
   "is_all_day": false,
   "equipment": "naked_eye",
   "visibility": "global",
   "visibility_model": "geometric",
   "confidence": "high",
   "source": "Internal Test",
-  "description": "Alarm test event.",
+  "description": "Alarm test event at 15:10 UK.",
   "tags": ["test"]
 }
 ]
