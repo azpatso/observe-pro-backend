@@ -281,17 +281,29 @@ def scheduled_event_notification_job():
             events = sb_get(
                 "user_events",
                 {
-                    "select": "*,users(id,timezone)",
+                    
                     "start": f"gte.{(datetime.utcnow() - timedelta(hours=2)).isoformat()}Z"
                 }
             )
 
             for event in events:
-                user = event.get("users")
-                if not user:
+
+                user_id = event.get("user_id")
+                if not user_id:
                     continue
 
-                user_id = user.get("id")
+                users = sb_get(
+                    "users",
+                    {
+                        "id": f"eq.{user_id}",
+                        "limit": 1
+                    }
+                )
+
+                if not users:
+                    continue
+
+                user = users[0]
                 timezone_str = user.get("timezone") or "UTC"
 
                 try:
@@ -311,6 +323,12 @@ def scheduled_event_notification_job():
                     start_utc = start_utc.astimezone(ZoneInfo("UTC"))
 
                 start_local = start_utc.astimezone(user_tz)
+
+                print("🔁 EVENT:", event.get("title"))
+                print("🕒 now_local:", now_local)
+                print("🕒 start_local:", start_local)
+                print("⏰ 1h trigger at:", start_local - timedelta(hours=1))
+                print("⏰ 24h trigger at:", start_local - timedelta(hours=24))
 
                 event_type = event.get("type")
 
@@ -370,6 +388,7 @@ def scheduled_event_notification_job():
                                  {"notified_24h_at": _utc_now_iso()})
 
                     if event.get("notified_1h_at") is None and now_local >= start_local - timedelta(hours=1):
+                        print("✅ SENDING 1H PUSH for:", event.get("title"), "to", user_id)
                         send_push(user_id, f"🌌 {event.get('title')}",
                                   "Event begins in ~1 hour.",
                                   {"type": event_type})

@@ -150,41 +150,41 @@
     "tags": ["comet", "tempel_2", "binoculars_or_telescope"]
   },
   {
-  "id": "test-comet-howell-1825",
+  "id": "test-comet-howell-1910",
   "type": "comet",
-  "title": "🚀 TEST Comet Howell – 18:25",
+  "title": "🚀 TEST Comet Howell – 19:10",
   "event_window": {
-    "start": "2026-03-01T18:25:00Z",
-    "end": "2026-03-01T18:45:00Z"
+    "start": "2026-03-01T19:10:00Z",
+    "end": "2026-03-01T19:30:00Z"
   },
-  "start": "2026-03-01T18:25:00Z",
-  "end": "2026-03-01T18:45:00Z",
+  "start": "2026-03-01T19:10:00Z",
+  "end": "2026-03-01T19:30:00Z",
   "is_all_day": false,
   "equipment": "telescope",
   "visibility": "global",
   "visibility_model": "geometric",
   "confidence": "high",
   "source": "Internal test",
-  "description": "Push test – should fire at 17:25 UK (1h before).",
+  "description": "Push test – should fire at 18:10 UK (1h before).",
   "tags": ["test", "push_test"]
 },
 {
-  "id": "test-comet-atlas-1830",
+  "id": "test-comet-atlas-1915",
   "type": "comet",
-  "title": "🚀 TEST Comet Atlas – 18:30",
+  "title": "🚀 TEST Comet Atlas – 19:15",
   "event_window": {
-    "start": "2026-03-01T18:30:00Z",
-    "end": "2026-03-01T18:50:00Z"
+    "start": "2026-03-01T19:15:00Z",
+    "end": "2026-03-01T19:35:00Z"
   },
-  "start": "2026-03-01T18:30:00Z",
-  "end": "2026-03-01T18:50:00Z",
+  "start": "2026-03-01T19:15:00Z",
+  "end": "2026-03-01T19:35:00Z",
   "is_all_day": false,
   "equipment": "telescope",
   "visibility": "global",
   "visibility_model": "geometric",
   "confidence": "high",
   "source": "Internal test",
-  "description": "Push test – should fire at 17:30 UK (1h before).",
+  "description": "Push test – should fire at 18:15 UK (1h before).",
   "tags": ["test", "push_test"]
 }
 ]
