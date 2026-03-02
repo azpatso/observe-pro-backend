@@ -150,23 +150,23 @@
     "tags": ["comet", "tempel_2", "binoculars_or_telescope"]
   },
   
-  {
-  "id": "test-comet-single-1645",
+ {
+  "id": "test-comet-single-1650",
   "type": "comet",
-  "title": "🚀 TEST Comet Single – 16:45",
+  "title": "🚀 TEST Comet Single – 16:50",
   "event_window": {
-    "start": "2026-03-02T16:45:00Z",
-    "end": "2026-03-02T17:05:00Z"
+    "start": "2026-03-02T16:50:00Z",
+    "end": "2026-03-02T17:10:00Z"
   },
-  "start": "2026-03-02T16:45:00Z",
-  "end": "2026-03-02T17:05:00Z",
+  "start": "2026-03-02T16:50:00Z",
+  "end": "2026-03-02T17:10:00Z",
   "is_all_day": false,
   "equipment": "telescope",
   "visibility": "global",
   "visibility_model": "geometric",
   "confidence": "high",
   "source": "Internal test",
-  "description": "Push test – should fire at 15:45 UK (1h before).",
+  "description": "Push test – should fire at 15:50 UK (1h before).",
   "tags": ["test", "push_test"]
 }
 
