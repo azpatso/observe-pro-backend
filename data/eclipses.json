@@ -112,19 +112,19 @@
     "tags": ["solar_eclipse", "total"]
   },
   {
-  "id": "eclipse-test-1935",
+  "id": "eclipse-test-1950",
   "type": "eclipse",
-  "title": "🌞 TEST Solar Eclipse – 19:35",
-  "start": "2026-03-02T19:35:00Z",
-  "end": "2026-03-02T19:55:00Z",
-  "maximum_time": "2026-03-02T19:40:00Z",
+  "title": "🌞 TEST Solar Eclipse – 19:50",
+  "start": "2026-03-02T19:50:00Z",
+  "end": "2026-03-02T20:10:00Z",
+  "maximum_time": "2026-03-02T19:55:00Z",
   "is_all_day": false,
   "equipment": "solar_filter_required",
   "visibility": "regional",
   "visibility_model": "geographic_path",
   "confidence": "high",
   "source": "Internal Test",
-  "description": "Push test eclipse event at 19:35 UK (24h reminder would be 2026-03-01 19:35 UK; 1h reminder should fire at 18:35 UK).",
+  "description": "Push test eclipse event at 19:50 UK (24h reminder would be 2026-03-01 19:50 UK; 1h reminder should fire at 18:50 UK).",
   "tags": ["test", "push_test", "solar_eclipse", "total"]
 }
 ]
