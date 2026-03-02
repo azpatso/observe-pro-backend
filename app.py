@@ -170,7 +170,22 @@ def _recently_notified(user, hours=12):
 
 def _parse_event_start(event):
     try:
-        return datetime.fromisoformat(str(event["start"]).replace("Z", ""))
+        s = str(event.get("start") or "").strip()
+        if not s:
+            return None
+
+        # Make Z explicit UTC offset so fromisoformat parses it
+        s = s.replace("Z", "+00:00")
+
+        dt = datetime.fromisoformat(s)
+
+        # Ensure tz-aware (assume UTC if missing)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=ZoneInfo("UTC"))
+        else:
+            dt = dt.astimezone(ZoneInfo("UTC"))
+
+        return dt
     except Exception:
         return None
 
@@ -197,73 +212,148 @@ def _should_notify(event, now):
 def aurora_notification_job():
     while True:
         try:
-            now_iso = _utc_now_iso()
-
-            # Fetch users who saved aurora events (join with users table)
+            # Get aurora-live saved rows + user location/timezone
             rows = sb_get(
                 "user_events",
                 {
                     "type": "eq.aurora",
-                    "select": "user_id,users(id,lat,lon,last_aurora_push_at)",
+                    "event_id": "eq.aurora-live",
+                    "select": "id,user_id,start,reminders_enabled,notified_4h_at,notified_1h_at,notified_30m_at,users(id,lat,lon,timezone)",
                 },
             )
 
-            processed = set()
-
             for row in rows:
-                user = row.get("users")
-                if not user:
-                    continue
+                user = row.get("users") or {}
 
-                user_id = user.get("id")
+                user_id = row.get("user_id")
                 if not user_id:
                     continue
 
-                # Prevent duplicate processing if multiple aurora saves
-                if user_id in processed:
+                # Respect per-event reminders toggle
+                if row.get("reminders_enabled") is not True:
                     continue
-                processed.add(user_id)
 
                 lat = user.get("lat")
                 lon = user.get("lon")
-
                 if lat is None or lon is None:
                     continue
 
+                tz_name = user.get("timezone") or "UTC"
+                try:
+                    user_tz = ZoneInfo(tz_name)
+                except Exception:
+                    user_tz = ZoneInfo("UTC")
+
+                # Compute latest forecast for user's coords
                 forecast = get_aurora_forecast(lat, lon)
 
-                # 12-hour cooldown check
-                last_push = user.get("last_aurora_push_at")
-                if last_push:
-                    try:
-                        last = datetime.fromisoformat(str(last_push).replace("Z", ""))
-                        if datetime.utcnow() - last < timedelta(hours=12):
-                            continue
-                    except Exception:
-                        pass
+                # If not likely right now, do nothing (prevents false pushes)
+                if not forecast.get("likely"):
+                    continue
 
-                if forecast.get("likely"):
-                    send_push(
-                        user_id,
-                        "🌌 Aurora Alert",
-                        forecast.get("message"),
+                peak = forecast.get("peak") or {}
+                peak_time_tag = peak.get("time_tag")  # "YYYY-MM-DD HH:MM:SSZ"
+                if not peak_time_tag:
+                    continue
+
+                # Parse peak time as UTC -> local
+                try:
+                    peak_utc = datetime.strptime(
+                        peak_time_tag.replace("Z", ""), "%Y-%m-%d %H:%M:%S"
+                    )
+                    peak_utc = peak_utc.replace(tzinfo=ZoneInfo("UTC"))
+                except Exception:
+                    continue
+
+                peak_local = peak_utc.astimezone(user_tz)
+                now_local = datetime.now(user_tz)
+
+                # Store the current peak in the row.start as ISO (UTC)
+                new_start = peak_utc.isoformat().replace("+00:00", "Z")
+                old_start = row.get("start")
+
+                # If peak changed (or start missing), update start and reset notifications
+                if not old_start or str(old_start) != new_start:
+                    sb_patch(
+                        "user_events",
+                        {"id": f"eq.{row['id']}"},
                         {
-                            "type": "aurora",
-                            "kp": forecast.get("kp_max_next_24h"),
+                            "start": new_start,
+                            "notified_4h_at": None,
+                            "notified_1h_at": None,
+                            "notified_30m_at": None,
                         },
                     )
+                    # Use updated "row" values for this tick
+                    row["start"] = new_start
+                    row["notified_4h_at"] = None
+                    row["notified_1h_at"] = None
+                    row["notified_30m_at"] = None
 
-                    # Update last push timestamp
+                # --- 4 hours before peak ---
+                if row.get("notified_4h_at") is None and now_local >= (
+                    peak_local - timedelta(hours=4)
+                ):
+                    send_push(
+                        user_id,
+                        "🌌 Aurora incoming",
+                        f"High aurora chance in ~4 hours (peak ~{peak_local.strftime('%H:%M')}).",
+                        {
+                            "type": "aurora",
+                            "target": "my-sky",
+                            "eventId": "aurora-live",
+                        },
+                    )
                     sb_patch(
-                        "users",
-                        {"id": f"eq.{user_id}"},
-                        {"last_aurora_push_at": now_iso},
+                        "user_events",
+                        {"id": f"eq.{row['id']}"},
+                        {"notified_4h_at": _utc_now_iso()},
+                    )
+
+                # --- 1 hour before peak ---
+                if row.get("notified_1h_at") is None and now_local >= (
+                    peak_local - timedelta(hours=1)
+                ):
+                    send_push(
+                        user_id,
+                        "🌌 Aurora soon",
+                        f"Aurora peak in ~1 hour (around {peak_local.strftime('%H:%M')}).",
+                        {
+                            "type": "aurora",
+                            "target": "my-sky",
+                            "eventId": "aurora-live",
+                        },
+                    )
+                    sb_patch(
+                        "user_events",
+                        {"id": f"eq.{row['id']}"},
+                        {"notified_1h_at": _utc_now_iso()},
+                    )
+
+                # --- optional: 30 minutes before peak ---
+                if row.get("notified_30m_at") is None and now_local >= (
+                    peak_local - timedelta(minutes=30)
+                ):
+                    send_push(
+                        user_id,
+                        "🌌 Aurora peak approaching",
+                        f"Peak in ~30 minutes (around {peak_local.strftime('%H:%M')}).",
+                        {
+                            "type": "aurora",
+                            "target": "my-sky",
+                            "eventId": "aurora-live",
+                        },
+                    )
+                    sb_patch(
+                        "user_events",
+                        {"id": f"eq.{row['id']}"},
+                        {"notified_30m_at": _utc_now_iso()},
                     )
 
         except Exception as e:
             print("Aurora job error:", e)
 
-        time.sleep(60 * 60)  # run every hour
+        time.sleep(60 * 60)  # every hour
 
 
 def scheduled_event_notification_job():
@@ -317,50 +407,20 @@ def scheduled_event_notification_job():
 
                 event_type = event.get("type")
 
-                # =========================
-                # 🌌 AURORA
-                # =========================
+                # 🔥 IMPORTANT:
+                # Aurora-live is handled by aurora_notification_job() only.
+                # Skip any aurora rows here to avoid duplicates.
                 if event_type == "aurora":
-
-                    if event.get(
-                        "notified_4h_at"
-                    ) is None and now_local >= start_local - timedelta(hours=4):
-                        send_push(
-                            user_id,
-                            "🌌 Aurora Incoming",
-                            "Aurora expected in ~4 hours.",
-                            {"type": "aurora"},
-                        )
-                        sb_patch(
-                            "user_events",
-                            {"id": f"eq.{event['id']}"},
-                            {"notified_4h_at": _utc_now_iso()},
-                        )
-
-                    if event.get(
-                        "notified_30m_at"
-                    ) is None and now_local >= start_local - timedelta(minutes=30):
-                        send_push(
-                            user_id,
-                            "🌌 Aurora Soon",
-                            "Aurora activity starting shortly.",
-                            {"type": "aurora"},
-                        )
-                        sb_patch(
-                            "user_events",
-                            {"id": f"eq.{event['id']}"},
-                            {"notified_30m_at": _utc_now_iso()},
-                        )
+                    continue
 
                 # =========================
                 # 🌠 METEOR
                 # =========================
                 elif event_type == "meteor":
-
                     # 24h reminder
-                    if event.get(
-                        "notified_24h_at"
-                    ) is None and now_local >= start_local - timedelta(hours=24):
+                    if event.get("notified_24h_at") is None and now_local >= (
+                        start_local - timedelta(hours=24)
+                    ):
                         send_push(
                             user_id,
                             f"🌠 {event.get('title')}",
@@ -377,10 +437,10 @@ def scheduled_event_notification_job():
                             {"notified_24h_at": _utc_now_iso()},
                         )
 
-                    # 1h reminder (or your test minutes)
-                    if event.get(
-                        "notified_1h_at"
-                    ) is None and now_local >= start_local - timedelta(hours=1):
+                    # 1h reminder
+                    if event.get("notified_1h_at") is None and now_local >= (
+                        start_local - timedelta(hours=1)
+                    ):
                         send_push(
                             user_id,
                             f"🌠 {event.get('title')}",
@@ -396,14 +456,14 @@ def scheduled_event_notification_job():
                             {"id": f"eq.{event['id']}"},
                             {"notified_1h_at": _utc_now_iso()},
                         )
+
                 # =========================
                 # 🌑 ECLIPSE / ☄ COMET / ✨ ALIGNMENT
                 # =========================
                 elif event_type in ("eclipse", "comet", "alignment"):
-
-                    if event.get(
-                        "notified_24h_at"
-                    ) is None and now_local >= start_local - timedelta(hours=24):
+                    if event.get("notified_24h_at") is None and now_local >= (
+                        start_local - timedelta(hours=24)
+                    ):
                         send_push(
                             user_id,
                             f"🌌 {event.get('title')}",
@@ -420,12 +480,9 @@ def scheduled_event_notification_job():
                             {"notified_24h_at": _utc_now_iso()},
                         )
 
-                    if event.get(
-                        "notified_1h_at"
-                    ) is None and now_local >= start_local - timedelta(hours=1):
-                        print(
-                            "✅ SENDING 1H PUSH for:", event.get("title"), "to", user_id
-                        )
+                    if event.get("notified_1h_at") is None and now_local >= (
+                        start_local - timedelta(hours=1)
+                    ):
                         send_push(
                             user_id,
                             f"🌌 {event.get('title')}",
@@ -443,18 +500,43 @@ def scheduled_event_notification_job():
                         )
 
                 # =========================
-                # 🌙 MOON (optional 8am logic kept separate)
+                # 🌙 MOON (day-based dataset → fixed local time)
+                # Uses calendar date from event_id moon-YYYY-MM-DD to avoid UTC day shift.
                 # =========================
                 elif event_type == "moon":
+                    event_key = event.get("event_id") or event.get("eventId") or ""
+                    date_str = ""
 
-                    if event.get(
-                        "notified_1h_at"
-                    ) is None and now_local >= start_local - timedelta(hours=1):
+                    if isinstance(event_key, str) and event_key.startswith("moon-"):
+                        date_str = event_key.replace("moon-", "").strip()
+
+                    if not date_str:
+                        start_raw = str(event.get("start") or "")
+                        date_str = start_raw[:10] if len(start_raw) >= 10 else ""
+
+                    if not date_str:
+                        continue
+
+                    try:
+                        y, m, d = map(int, date_str.split("-"))
+                    except Exception:
+                        continue
+
+                    notify_local = datetime(y, m, d, 20, 0, 0, tzinfo=user_tz)
+
+                    if (
+                        event.get("notified_1h_at") is None
+                        and now_local >= notify_local
+                    ):
                         send_push(
                             user_id,
                             f"🌙 {event.get('title')}",
-                            "Moon phase happening in ~1 hour.",
-                            {"type": "moon"},
+                            "Tonight’s moon phase — tap to view in My Sky.",
+                            {
+                                "type": "moon",
+                                "target": "my-sky",
+                                "eventId": event.get("event_id", ""),
+                            },
                         )
                         sb_patch(
                             "user_events",
@@ -1070,6 +1152,25 @@ def get_user_events():
     events = sb_get("user_events", {"user_id": f"eq.{user_id}"})
 
     return jsonify({"success": True, "events": events})
+
+
+@app.route("/api/user/location", methods=["POST"])
+def update_user_location():
+    data = request.get_json() or {}
+    user_id = data.get("userId")
+    lat = data.get("lat")
+    lon = data.get("lon")
+    timezone = data.get("timezone")
+
+    if not user_id or lat is None or lon is None:
+        return jsonify({"success": False, "error": "Missing userId/lat/lon"}), 400
+
+    patch = {"lat": float(lat), "lon": float(lon)}
+    if timezone:
+        patch["timezone"] = timezone
+
+    sb_patch("users", {"id": f"eq.{user_id}"}, patch)
+    return jsonify({"success": True})
 
 
 @app.route("/api/user/events/reminders", methods=["POST"])
