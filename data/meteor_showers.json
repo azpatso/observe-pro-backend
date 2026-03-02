@@ -196,5 +196,27 @@
     "source": "IMO",
     "description": "The Geminids are among the richest annual showers, producing numerous bright meteors each December. Their origin in an asteroid stream makes them unique and easy to spot after midnight.",
     "tags": ["meteor", "geminids", "naked_eye"]
-  }
+  },
+  {
+  "id": "meteor-test-1710",
+  "type": "meteor",
+  "title": "🌠 TEST Meteor Shower – 17:10",
+  "event_window": {
+    "start": "2026-03-02T17:10:00Z",
+    "end": "2026-03-02T17:30:00Z"
+  },
+  "start": "2026-03-02T17:10:00Z",
+  "end": "2026-03-02T17:30:00Z",
+  "peak_date": "2026-03-02T17:10:00Z",
+  "best_observation_date": "2026-03-02T17:10:00Z",
+  "best_time_window": "after_midnight",
+  "is_all_day": false,
+  "equipment": "naked_eye",
+  "visibility": "global",
+  "visibility_model": "weather_sensitive",
+  "confidence": "high",
+  "source": "Internal Test",
+  "description": "Push test meteor event at 17:10 UK (12h reminder should fire at 05:10 UK, 1h reminder at 16:10 UK).",
+  "tags": ["test", "push_test", "meteor"]
+}
 ]
