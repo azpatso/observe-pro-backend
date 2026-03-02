@@ -1154,6 +1154,32 @@ def get_user_events():
     return jsonify({"success": True, "events": events})
 
 
+@app.route("/api/user/location", methods=["GET"])
+def get_user_location():
+    user_id = request.args.get("userId")
+    if not user_id:
+        return jsonify({"success": False, "error": "Missing userId"}), 400
+
+    users = sb_get("users", {"id": f"eq.{user_id}", "limit": 1})
+    if not users:
+        return jsonify({"success": False, "error": "User not found"}), 404
+
+    u = users[0]
+    return jsonify(
+        {
+            "success": True,
+            "location": {
+                "lat": u.get("lat"),
+                "lon": u.get("lon"),
+                "city": u.get("city"),
+                "country": u.get("country"),
+                "timezone": u.get("timezone"),
+                "source": "profile",
+            },
+        }
+    )
+
+
 @app.route("/api/user/location", methods=["POST"])
 def update_user_location():
     data = request.get_json() or {}
