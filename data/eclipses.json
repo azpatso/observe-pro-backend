@@ -110,5 +110,21 @@
     "source": "NASA Eclipse Catalog",
     "description": "A dramatic total solar eclipse visible along a defined path across Earth. Observers within the path of totality will witness the Sun’s corona becoming visible for several minutes.",
     "tags": ["solar_eclipse", "total"]
-  }
+  },
+  {
+  "id": "eclipse-test-1700",
+  "type": "eclipse",
+  "title": "🌞 TEST Solar Eclipse – 17:00",
+  "start": "2026-03-02T17:00:00Z",
+  "end": "2026-03-02T17:20:00Z",
+  "maximum_time": "2026-03-02T17:05:00Z",
+  "is_all_day": false,
+  "equipment": "solar_filter_required",
+  "visibility": "regional",
+  "visibility_model": "geographic_path",
+  "confidence": "high",
+  "source": "Internal Test",
+  "description": "Push test eclipse event at 17:00 UK (24h reminder would be 2026-03-01 17:00 UK; 1h reminder should fire at 16:00 UK).",
+  "tags": ["test", "push_test", "solar_eclipse", "total"]
+}
 ]
