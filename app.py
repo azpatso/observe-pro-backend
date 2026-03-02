@@ -55,19 +55,20 @@ CORS(
     supports_credentials=False,
 )
 
+
 @app.before_request
 def handle_options_preflight():
     if request.method == "OPTIONS":
         return "", 200
 
 
-
 app.register_blueprint(auth_bp, url_prefix="/api/auth")
 
 
-
 AURORA_CACHE_FILE = DATA_DIR / "aurora_cache.json"
-NOAA_KP_FORECAST_URL = "https://services.swpc.noaa.gov/products/noaa-planetary-k-index-forecast.json"
+NOAA_KP_FORECAST_URL = (
+    "https://services.swpc.noaa.gov/products/noaa-planetary-k-index-forecast.json"
+)
 AURORA_CACHE_TTL_SECONDS = 60 * 60  # 1 hour
 
 
@@ -104,40 +105,36 @@ def send_push(user_id, title, body, data=None):
             print("FCM send error (kept token):", e)
 
 
-
 # ---------- Supabase REST Setup ----------
 SUPABASE_URL = (os.environ.get("SUPABASE_URL") or "").strip().rstrip("/")
 SUPABASE_KEY = (os.environ.get("SUPABASE_KEY") or "").strip()
 
 if not SUPABASE_URL or not SUPABASE_KEY:
     raise RuntimeError("SUPABASE_URL or SUPABASE_KEY missing")
-                       
+
 HEADERS = {
     "apikey": SUPABASE_KEY,
     "Authorization": f"Bearer {SUPABASE_KEY}",
     "Content-Type": "application/json",
-    "Prefer": "return=representation"
+    "Prefer": "return=representation",
 }
+
 
 def sb_get(table, params=None):
     r = requests.get(
-        f"{SUPABASE_URL}/rest/v1/{table}",
-        headers=HEADERS,
-        params=params,
-        timeout=10
+        f"{SUPABASE_URL}/rest/v1/{table}", headers=HEADERS, params=params, timeout=10
     )
     r.raise_for_status()
     return r.json()
 
+
 def sb_post(table, data):
     r = requests.post(
-        f"{SUPABASE_URL}/rest/v1/{table}",
-        headers=HEADERS,
-        json=data,
-        timeout=10
+        f"{SUPABASE_URL}/rest/v1/{table}", headers=HEADERS, json=data, timeout=10
     )
     r.raise_for_status()
     return r.json()
+
 
 def sb_patch(table, filters, data):
     r = requests.patch(
@@ -145,23 +142,18 @@ def sb_patch(table, filters, data):
         headers=HEADERS,
         params=filters,
         json=data,
-        timeout=10
+        timeout=10,
     )
     r.raise_for_status()
     return r.json()
+
 
 def sb_delete(table, filters):
     r = requests.delete(
-        f"{SUPABASE_URL}/rest/v1/{table}",
-        headers=HEADERS,
-        params=filters,
-        timeout=10
+        f"{SUPABASE_URL}/rest/v1/{table}", headers=HEADERS, params=filters, timeout=10
     )
     r.raise_for_status()
     return r.json()
-
-
-
 
 
 def _recently_notified(user, hours=12):
@@ -183,7 +175,6 @@ def _parse_event_start(event):
         return None
 
 
-
 def _should_notify(event, now):
     start = _parse_event_start(event)
     if not start:
@@ -202,6 +193,7 @@ def _should_notify(event, now):
 
     return False
 
+
 def aurora_notification_job():
     while True:
         try:
@@ -212,8 +204,8 @@ def aurora_notification_job():
                 "user_events",
                 {
                     "type": "eq.aurora",
-                    "select": "user_id,users(id,lat,lon,last_aurora_push_at)"
-                }
+                    "select": "user_id,users(id,lat,lon,last_aurora_push_at)",
+                },
             )
 
             processed = set()
@@ -239,7 +231,6 @@ def aurora_notification_job():
                     continue
 
                 forecast = get_aurora_forecast(lat, lon)
-                
 
                 # 12-hour cooldown check
                 last_push = user.get("last_aurora_push_at")
@@ -251,8 +242,6 @@ def aurora_notification_job():
                     except Exception:
                         pass
 
-                
-
                 if forecast.get("likely"):
                     send_push(
                         user_id,
@@ -261,14 +250,14 @@ def aurora_notification_job():
                         {
                             "type": "aurora",
                             "kp": forecast.get("kp_max_next_24h"),
-                        }
+                        },
                     )
 
                     # Update last push timestamp
                     sb_patch(
                         "users",
                         {"id": f"eq.{user_id}"},
-                        {"last_aurora_push_at": now_iso}
+                        {"last_aurora_push_at": now_iso},
                     )
 
         except Exception as e:
@@ -276,15 +265,16 @@ def aurora_notification_job():
 
         time.sleep(60 * 60)  # run every hour
 
+
 def scheduled_event_notification_job():
     while True:
         try:
             events = sb_get(
                 "user_events",
                 {
-                    
-                    "start": f"gte.{(datetime.utcnow() - timedelta(hours=2)).isoformat()}Z"
-                }
+                    "reminders_enabled": "eq.true",
+                    "start": f"gte.{(datetime.utcnow() - timedelta(hours=2)).isoformat()}Z",
+                },
             )
 
             for event in events:
@@ -293,13 +283,7 @@ def scheduled_event_notification_job():
                 if not user_id:
                     continue
 
-                users = sb_get(
-                    "users",
-                    {
-                        "id": f"eq.{user_id}",
-                        "limit": 1
-                    }
-                )
+                users = sb_get("users", {"id": f"eq.{user_id}", "limit": 1})
 
                 if not users:
                     continue
@@ -338,77 +322,145 @@ def scheduled_event_notification_job():
                 # =========================
                 if event_type == "aurora":
 
-                    if event.get("notified_4h_at") is None and now_local >= start_local - timedelta(hours=4):
-                        send_push(user_id, "🌌 Aurora Incoming",
-                                  "Aurora expected in ~4 hours.",
-                                  {"type": "aurora"})
-                        sb_patch("user_events",
-                                 {"id": f"eq.{event['id']}"},
-                                 {"notified_4h_at": _utc_now_iso()})
+                    if event.get(
+                        "notified_4h_at"
+                    ) is None and now_local >= start_local - timedelta(hours=4):
+                        send_push(
+                            user_id,
+                            "🌌 Aurora Incoming",
+                            "Aurora expected in ~4 hours.",
+                            {"type": "aurora"},
+                        )
+                        sb_patch(
+                            "user_events",
+                            {"id": f"eq.{event['id']}"},
+                            {"notified_4h_at": _utc_now_iso()},
+                        )
 
-                    if event.get("notified_30m_at") is None and now_local >= start_local - timedelta(minutes=30):
-                        send_push(user_id, "🌌 Aurora Soon",
-                                  "Aurora activity starting shortly.",
-                                  {"type": "aurora"})
-                        sb_patch("user_events",
-                                 {"id": f"eq.{event['id']}"},
-                                 {"notified_30m_at": _utc_now_iso()})
+                    if event.get(
+                        "notified_30m_at"
+                    ) is None and now_local >= start_local - timedelta(minutes=30):
+                        send_push(
+                            user_id,
+                            "🌌 Aurora Soon",
+                            "Aurora activity starting shortly.",
+                            {"type": "aurora"},
+                        )
+                        sb_patch(
+                            "user_events",
+                            {"id": f"eq.{event['id']}"},
+                            {"notified_30m_at": _utc_now_iso()},
+                        )
 
                 # =========================
                 # 🌠 METEOR
                 # =========================
                 elif event_type == "meteor":
 
-                    if event.get("notified_12h_at") is None and now_local >= start_local - timedelta(hours=12):
-                        send_push(user_id, f"🌠 {event.get('title')}",
-                                  "Meteor shower peak in ~12 hours.",
-                                  {"type": "meteor"})
-                        sb_patch("user_events",
-                                 {"id": f"eq.{event['id']}"},
-                                 {"notified_12h_at": _utc_now_iso()})
+                    # 24h reminder
+                    if event.get(
+                        "notified_24h_at"
+                    ) is None and now_local >= start_local - timedelta(hours=24):
+                        send_push(
+                            user_id,
+                            f"🌠 {event.get('title')}",
+                            "Meteor shower peak in ~24 hours.",
+                            {
+                                "type": "meteor",
+                                "target": "my-sky",
+                                "eventId": event.get("event_id", ""),
+                            },
+                        )
+                        sb_patch(
+                            "user_events",
+                            {"id": f"eq.{event['id']}"},
+                            {"notified_24h_at": _utc_now_iso()},
+                        )
 
-                    if event.get("notified_1h_at") is None and now_local >= start_local - timedelta(hours=1):
-                        send_push(user_id, f"🌠 {event.get('title')}",
-                                  "Meteor shower peak in ~1 hour.",
-                                  {"type": "meteor"})
-                        sb_patch("user_events",
-                                 {"id": f"eq.{event['id']}"},
-                                 {"notified_1h_at": _utc_now_iso()})
-
+                    # 1h reminder (or your test minutes)
+                    if event.get(
+                        "notified_1h_at"
+                    ) is None and now_local >= start_local - timedelta(hours=1):
+                        send_push(
+                            user_id,
+                            f"🌠 {event.get('title')}",
+                            "Meteor shower peak in ~1 hour.",
+                            {
+                                "type": "meteor",
+                                "target": "my-sky",
+                                "eventId": event.get("event_id", ""),
+                            },
+                        )
+                        sb_patch(
+                            "user_events",
+                            {"id": f"eq.{event['id']}"},
+                            {"notified_1h_at": _utc_now_iso()},
+                        )
                 # =========================
                 # 🌑 ECLIPSE / ☄ COMET / ✨ ALIGNMENT
                 # =========================
                 elif event_type in ("eclipse", "comet", "alignment"):
 
-                    if event.get("notified_24h_at") is None and now_local >= start_local - timedelta(hours=24):
-                        send_push(user_id, f"🌌 {event.get('title')}",
-                                  "Event begins in ~24 hours.",
-                                  {"type": event_type})
-                        sb_patch("user_events",
-                                 {"id": f"eq.{event['id']}"},
-                                 {"notified_24h_at": _utc_now_iso()})
+                    if event.get(
+                        "notified_24h_at"
+                    ) is None and now_local >= start_local - timedelta(hours=24):
+                        send_push(
+                            user_id,
+                            f"🌌 {event.get('title')}",
+                            "Event begins in ~24 hours.",
+                            {
+                                "type": event_type,
+                                "target": "my-sky",
+                                "eventId": event.get("event_id", ""),
+                            },
+                        )
+                        sb_patch(
+                            "user_events",
+                            {"id": f"eq.{event['id']}"},
+                            {"notified_24h_at": _utc_now_iso()},
+                        )
 
-                    if event.get("notified_1h_at") is None and now_local >= start_local - timedelta(hours=1):
-                        print("✅ SENDING 1H PUSH for:", event.get("title"), "to", user_id)
-                        send_push(user_id, f"🌌 {event.get('title')}",
-                                  "Event begins in ~1 hour.",
-                                  {"type": event_type})
-                        sb_patch("user_events",
-                                 {"id": f"eq.{event['id']}"},
-                                 {"notified_1h_at": _utc_now_iso()})
+                    if event.get(
+                        "notified_1h_at"
+                    ) is None and now_local >= start_local - timedelta(hours=1):
+                        print(
+                            "✅ SENDING 1H PUSH for:", event.get("title"), "to", user_id
+                        )
+                        send_push(
+                            user_id,
+                            f"🌌 {event.get('title')}",
+                            "Event begins in ~1 hour.",
+                            {
+                                "type": event_type,
+                                "target": "my-sky",
+                                "eventId": event.get("event_id", ""),
+                            },
+                        )
+                        sb_patch(
+                            "user_events",
+                            {"id": f"eq.{event['id']}"},
+                            {"notified_1h_at": _utc_now_iso()},
+                        )
 
                 # =========================
                 # 🌙 MOON (optional 8am logic kept separate)
                 # =========================
                 elif event_type == "moon":
 
-                    if event.get("notified_1h_at") is None and now_local >= start_local - timedelta(hours=1):
-                        send_push(user_id, f"🌙 {event.get('title')}",
-                                  "Moon phase happening in ~1 hour.",
-                                  {"type": "moon"})
-                        sb_patch("user_events",
-                                 {"id": f"eq.{event['id']}"},
-                                 {"notified_1h_at": _utc_now_iso()})
+                    if event.get(
+                        "notified_1h_at"
+                    ) is None and now_local >= start_local - timedelta(hours=1):
+                        send_push(
+                            user_id,
+                            f"🌙 {event.get('title')}",
+                            "Moon phase happening in ~1 hour.",
+                            {"type": "moon"},
+                        )
+                        sb_patch(
+                            "user_events",
+                            {"id": f"eq.{event['id']}"},
+                            {"notified_1h_at": _utc_now_iso()},
+                        )
 
         except Exception as e:
             print("Scheduled job error:", e)
@@ -431,6 +483,7 @@ with open(DATA_DIR / "comets.json", "r", encoding="utf-8") as f:
 with open(DATA_DIR / "alignments.json", "r", encoding="utf-8") as f:
     ALIGNMENTS_RAW = json.load(f)
 
+
 def build_moon_events():
     events = []
     last_phase = None
@@ -443,48 +496,55 @@ def build_moon_events():
             "New Moon",
             "First Quarter",
             "Full Moon",
-            "Last Quarter"
+            "Last Quarter",
         ):
-            events.append({
-                "id": f"moon-{date_str}",
-                "type": "moon",
-                "title": phase,
-                "start": f"{date_str}T00:00:00Z",
-                "end": f"{date_str}T23:59:59Z",
-                "visibility": "global",
-                "confidence": "high",
-                "source": "internal",
-                "tags": [phase.lower().replace(" ", "_")]
-            })
+            events.append(
+                {
+                    "id": f"moon-{date_str}",
+                    "type": "moon",
+                    "title": phase,
+                    "start": f"{date_str}T00:00:00Z",
+                    "end": f"{date_str}T23:59:59Z",
+                    "visibility": "global",
+                    "confidence": "high",
+                    "source": "internal",
+                    "tags": [phase.lower().replace(" ", "_")],
+                }
+            )
 
         last_phase = phase
 
     return events
+
 
 MOON_EVENTS = build_moon_events()
 
 with open(DATA_DIR / "eclipses.json", "r", encoding="utf-8") as f:
     ECLIPSES_RAW = json.load(f)
 
+
 def get_eclipse_events():
     return [e for e in ECLIPSES_RAW if _is_future(e)]
+
 
 def get_meteor_events():
     events = []
 
     for m in METEOR_RAW:
-        events.append({
-            "id": m["id"],
-            "type": "meteor",
-            "title": m["title"],  # 👈 use original title
-            "start": m["start"],
-            "end": m["end"],
-            "visibility": m.get("visibility", "global"),
-            "confidence": m.get("confidence"),
-            "source": m.get("source"),
-            "description": m.get("description"),  # 👈 THIS WAS MISSING
-            "tags": m.get("tags", [])
-        })
+        events.append(
+            {
+                "id": m["id"],
+                "type": "meteor",
+                "title": m["title"],  # 👈 use original title
+                "start": m["start"],
+                "end": m["end"],
+                "visibility": m.get("visibility", "global"),
+                "confidence": m.get("confidence"),
+                "source": m.get("source"),
+                "description": m.get("description"),  # 👈 THIS WAS MISSING
+                "tags": m.get("tags", []),
+            }
+        )
 
     return [e for e in events if _is_future(e)]
 
@@ -504,14 +564,13 @@ def get_comet_events():
     return events
 
 
-
 def get_alignment_events():
     return [e for e in ALIGNMENTS_RAW if _is_future(e)]
 
 
-
 def _utc_now_iso():
     return datetime.utcnow().isoformat() + "Z"
+
 
 def generate_ics(event):
     def fmt(dt):
@@ -557,7 +616,6 @@ def _save_aurora_cache(payload):
     AURORA_CACHE_FILE.write_text(json.dumps(payload), encoding="utf-8")
 
 
-
 def fetch_noaa_kp_forecast_cached():
     """
     Returns NOAA Kp forecast JSON (array of arrays) with a 1-hour cache on disk.
@@ -579,10 +637,7 @@ def fetch_noaa_kp_forecast_cached():
             raw = r.read().decode("utf-8")
             kp_forecast = json.loads(raw)
 
-        _save_aurora_cache({
-            "cached_at": _utc_now_iso(),
-            "kp_forecast": kp_forecast
-        })
+        _save_aurora_cache({"cached_at": _utc_now_iso(), "kp_forecast": kp_forecast})
         return kp_forecast
     except URLError:
         # If NOAA is unreachable, fall back to cache if we have it
@@ -643,12 +698,13 @@ def summarize_kp_next_24h(kp_rows):
                         "time_tag": t_str + "Z",
                         "kp": kp,
                         "status": status,
-                        "noaa_scale": scale
+                        "noaa_scale": scale,
                     }
         except Exception:
             continue
 
     return max_kp, max_entry
+
 
 def get_aurora_forecast(lat, lon):
     """
@@ -687,7 +743,8 @@ def get_aurora_forecast(lat, lon):
     weather = get_weather_forecast(lat, lon)
 
     night_hours = [
-        h for h in weather.get("hours", [])
+        h
+        for h in weather.get("hours", [])
         if h.get("is_night")
         and now <= _parse_iso(h["time"]) <= now + timedelta(hours=24)
     ]
@@ -723,29 +780,24 @@ def get_aurora_forecast(lat, lon):
     return {
         "lat": lat,
         "lon": lon,
-
         # Backward compatibility
         "kp_max_next_24h": max_kp,
         "required_kp": req_kp,
         "likely": max_kp is not None and max_kp >= req_kp,
-
         # New structured data
         "geomagnetic": {
             "kp_max": max_kp,
             "required_kp": req_kp,
             "score": geomagnetic_score,
-            "state": geomagnetic_state
+            "state": geomagnetic_state,
         },
-        "sky": {
-            "avg_cloud": avg_cloud,
-            "score": sky_score,
-            "state": sky_state
-        },
-
+        "sky": {"avg_cloud": avg_cloud, "score": sky_score, "state": sky_state},
         "peak": max_entry,
         "message": overall,
         "source": "NOAA SWPC + Open-Meteo",
-        "cached_at": _load_aurora_cache().get("cached_at") if _load_aurora_cache() else None
+        "cached_at": (
+            _load_aurora_cache().get("cached_at") if _load_aurora_cache() else None
+        ),
     }
 
 
@@ -772,15 +824,20 @@ def aurora_forecast_to_upcoming_event(forecast):
         "id": f"aurora-{date_str or 'today'}",
         "type": "aurora",
         "title": "Aurora likely tonight in your area",
-        "subtitle": f"Lat {lat}° · Kp {kp} (need ≥ {required})" if kp is not None else f"Lat {lat}°",
+        "subtitle": (
+            f"Lat {lat}° · Kp {kp} (need ≥ {required})"
+            if kp is not None
+            else f"Lat {lat}°"
+        ),
         "start": f"{date_str}T00:00:00Z" if date_str else _utc_now_iso(),
         "end": f"{date_str}T23:59:59Z" if date_str else _utc_now_iso(),
         "visibility": "regional",
         "confidence": "medium",
         "source": forecast.get("source", "NOAA SWPC"),
         "tags": ["aurora", "space_weather"],
-        "data": forecast
+        "data": forecast,
     }
+
 
 # ---------- Visibility Engine ----------
 
@@ -807,9 +864,9 @@ def _weather_score_for_event(event, weather):
     end = _parse_iso(event["end"])
 
     relevant = [
-        h for h in weather.get("hours", [])
-        if h["is_night"]
-        and start <= _parse_iso(h["time"]) <= end + timedelta(days=1)
+        h
+        for h in weather.get("hours", [])
+        if h["is_night"] and start <= _parse_iso(h["time"]) <= end + timedelta(days=1)
     ]
 
     if not relevant:
@@ -859,10 +916,8 @@ def estimate_visibility(event, lat, lon, weather):
     else:
         reason = ", ".join(reason_parts).capitalize()
 
-    return {
-        "chance": score,
-        "reason": reason
-    }
+    return {"chance": score, "reason": reason}
+
 
 def get_moon_window(days=30):
     today = datetime.utcnow().date()
@@ -987,20 +1042,23 @@ def get_special_moon_events(days=60):
             if title not in ("Strawberry Moon", "Supermoon", "Micromoon"):
                 continue
 
-            events.append({
-                "id": f"moon-special-{date_str}",
-                "type": "moon_special",
-                "title": title,
-                "subtitle": subtitle,
-                "start": f"{date_str}T00:00:00Z",
-                "end": f"{date_str}T23:59:59Z",
-                "visibility": "global",
-                "confidence": "high",
-                "source": "Lunar tradition",
-                "tags": tags
-            })
+            events.append(
+                {
+                    "id": f"moon-special-{date_str}",
+                    "type": "moon_special",
+                    "title": title,
+                    "subtitle": subtitle,
+                    "start": f"{date_str}T00:00:00Z",
+                    "end": f"{date_str}T23:59:59Z",
+                    "visibility": "global",
+                    "confidence": "high",
+                    "source": "Lunar tradition",
+                    "tags": tags,
+                }
+            )
 
     return events
+
 
 # ---------- API Routes ----------
 @app.route("/api/user/events", methods=["GET"])
@@ -1011,23 +1069,46 @@ def get_user_events():
 
     events = sb_get("user_events", {"user_id": f"eq.{user_id}"})
 
-    return jsonify({
-        "success": True,
-        "events": events
-    })
+    return jsonify({"success": True, "events": events})
 
+
+@app.route("/api/user/events/reminders", methods=["POST"])
+def set_event_reminders():
+    data = request.get_json() or {}
+    user_id = data.get("userId")
+    event_id = data.get("eventId")
+    enabled = bool(data.get("enabled"))
+
+    if not user_id or not event_id:
+        return jsonify({"success": False, "error": "Missing userId or eventId"}), 400
+
+    patch_data = {"reminders_enabled": enabled}
+
+    # If disabling, clear notification timestamps so re-enabling works cleanly
+    if not enabled:
+        patch_data.update(
+            {
+                "notified_24h_at": None,
+                "notified_12h_at": None,
+                "notified_1h_at": None,
+                "notified_4h_at": None,
+                "notified_30m_at": None,
+            }
+        )
+
+    sb_patch(
+        "user_events",
+        {"user_id": f"eq.{user_id}", "event_id": f"eq.{event_id}"},
+        patch_data,
+    )
+
+    return jsonify({"success": True, "enabled": enabled})
 
 
 @app.route("/api/test-push")
 def test_push():
     # 1) get most recent saved event (that has a user_id)
-    events = sb_get(
-        "user_events",
-        {
-            "order": "created_at.desc",
-            "limit": 1
-        }
-    )
+    events = sb_get("user_events", {"order": "created_at.desc", "limit": 1})
 
     if not events:
         return jsonify({"error": "No saved events found"}), 400
@@ -1046,15 +1127,14 @@ def test_push():
         body,
         {
             "type": ev.get("type", ""),
-            "eventId": ev.get("event_id", "")
-        }
+            "eventId": ev.get("event_id", ""),
+            "target": "my-sky",
+        },
     )
 
-    return jsonify({"success": True, "sentToUser": user_id, "eventId": ev.get("event_id")})
-
-
-
-
+    return jsonify(
+        {"success": True, "sentToUser": user_id, "eventId": ev.get("event_id")}
+    )
 
 
 @app.route("/api/user/events", methods=["POST"])
@@ -1066,17 +1146,18 @@ def add_user_event():
     if not user_id or not event:
         return jsonify({"success": False, "error": "Missing data"}), 400
 
-    sb_post("user_events", {
-        "user_id": user_id,
-        "event_id": event.get("id"),
-        "type": event.get("type"),
-        "title": event.get("title"),
-        "start": event.get("start"),
-    })
+    sb_post(
+        "user_events",
+        {
+            "user_id": user_id,
+            "event_id": event.get("id"),
+            "type": event.get("type"),
+            "title": event.get("title"),
+            "start": event.get("start"),
+        },
+    )
 
     return jsonify({"success": True})
-
-
 
 
 @app.route("/api/user/events", methods=["DELETE"])
@@ -1088,16 +1169,9 @@ def delete_user_event():
     if not user_id or not event_id:
         return jsonify({"success": False, "error": "Missing userId or eventId"}), 400
 
-    sb_delete(
-        "user_events",
-        {
-            "user_id": f"eq.{user_id}",
-            "event_id": f"eq.{event_id}"
-        }
-    )
+    sb_delete("user_events", {"user_id": f"eq.{user_id}", "event_id": f"eq.{event_id}"})
 
     return jsonify({"success": True})
-
 
 
 @app.route("/api/push/subscribe", methods=["POST"])
@@ -1110,10 +1184,7 @@ def push_subscribe():
         return jsonify({"success": False, "error": "Missing userId or token"}), 400
 
     try:
-        sb_post("push_tokens", {
-            "user_id": user_id,
-            "token": token
-        })
+        sb_post("push_tokens", {"user_id": user_id, "token": token})
         return jsonify({"success": True, "message": "Token inserted"}), 200
 
     except requests.HTTPError as e:
@@ -1124,10 +1195,6 @@ def push_subscribe():
         # Any other error → real failure
         print("Push subscribe error:", e)
         return jsonify({"success": False, "error": "Failed to save token"}), 500
-
-
-
-
 
 
 @app.route("/api/calendar/<event_id>")
@@ -1142,11 +1209,7 @@ def export_calendar(event_id):
     if user_id:
         rows = sb_get(
             "user_events",
-            {
-                "user_id": f"eq.{user_id}",
-                "event_id": f"eq.{event_id}",
-                "limit": 1
-            }
+            {"user_id": f"eq.{user_id}", "event_id": f"eq.{event_id}", "limit": 1},
         )
         if rows:
             row = rows[0]
@@ -1154,7 +1217,7 @@ def export_calendar(event_id):
                 "id": row["event_id"],
                 "title": row["title"],
                 "start": row["start"],
-                "end": row["start"]
+                "end": row["start"],
             }
 
     # 2️⃣ If not found → search static events
@@ -1175,9 +1238,14 @@ def export_calendar(event_id):
         return jsonify({"error": "Event not found"}), 404
     # 🚫 Block aurora calendar export
     if event and event.get("type") == "aurora":
-        return jsonify({
-            "error": "Aurora cannot be exported to calendar because it uses a 24-hour rolling forecast updated hourly."
-        }), 400
+        return (
+            jsonify(
+                {
+                    "error": "Aurora cannot be exported to calendar because it uses a 24-hour rolling forecast updated hourly."
+                }
+            ),
+            400,
+        )
     ics = generate_ics(event)
 
     return (
@@ -1189,13 +1257,16 @@ def export_calendar(event_id):
         },
     )
 
+
 @app.route("/api/debug-alignments")
 def debug_alignments():
-    return jsonify({
-        "count": len(ALIGNMENTS_RAW),
-        "first_id": ALIGNMENTS_RAW[0]["id"] if ALIGNMENTS_RAW else None,
-        "file_path": str(DATA_DIR / "alignments.json")
-    })
+    return jsonify(
+        {
+            "count": len(ALIGNMENTS_RAW),
+            "first_id": ALIGNMENTS_RAW[0]["id"] if ALIGNMENTS_RAW else None,
+            "file_path": str(DATA_DIR / "alignments.json"),
+        }
+    )
 
 
 @app.route("/api/moon")
@@ -1207,9 +1278,11 @@ def moon():
 def eclipses():
     return jsonify(get_eclipse_events())
 
+
 @app.route("/api/meteors")
 def meteors():
     return jsonify(get_meteor_events())
+
 
 @app.route("/api/aurora")
 def aurora():
@@ -1217,16 +1290,23 @@ def aurora():
     lon = request.args.get("lon", type=float)
 
     if lat is None or lon is None:
-        return jsonify({
-            "error": "lat and lon query params are required, e.g. /api/aurora?lat=55.9&lon=-3.2"
-        }), 400
+        return (
+            jsonify(
+                {
+                    "error": "lat and lon query params are required, e.g. /api/aurora?lat=55.9&lon=-3.2"
+                }
+            ),
+            400,
+        )
 
     forecast = get_aurora_forecast(lat, lon)
     return jsonify(forecast)
 
+
 @app.route("/api/comets")
 def comets():
     return jsonify(get_comet_events())
+
 
 @app.route("/api/weather")
 def api_weather():
@@ -1242,9 +1322,11 @@ def api_weather():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
 @app.route("/api/alignments")
 def alignments():
     return jsonify(get_alignment_events())
+
 
 @app.route("/api/upcoming")
 def upcoming_events():
@@ -1258,7 +1340,6 @@ def upcoming_events():
     all_events.extend(get_comet_events())
     all_events.extend(get_special_moon_events())
     all_events.extend(get_alignment_events())
-
 
     lat = request.args.get("lat", type=float)
     lon = request.args.get("lon", type=float)
@@ -1289,28 +1370,17 @@ def upcoming_events():
 
         enriched.append(e)
 
-
-        
-
     enriched.sort(key=lambda e: e["start"])
     return jsonify(enriched[:50])
 
-def start_background_jobs():
-    threading.Thread(
-        target=aurora_notification_job,
-        daemon=True
-     ).start()
 
-    threading.Thread(
-        target=scheduled_event_notification_job,
-        daemon=True
-    ).start()
+def start_background_jobs():
+    threading.Thread(target=aurora_notification_job, daemon=True).start()
+
+    threading.Thread(target=scheduled_event_notification_job, daemon=True).start()
+
 
 start_background_jobs()
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
-
-
-
-
