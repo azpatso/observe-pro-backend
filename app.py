@@ -17,6 +17,7 @@ import requests
 from zoneinfo import ZoneInfo
 
 app = Flask(__name__)
+print("✅ DEPLOY CHECK: observe-pro-backend build 2026-03-02-1602Z")
 BASE_DIR = Path(__file__).parent
 DATA_DIR = BASE_DIR / "data"
 
