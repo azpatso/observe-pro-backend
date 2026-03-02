@@ -149,42 +149,44 @@
     "description": "A well-known periodic comet returning in summer 2026. Best observed in July and August with binoculars or a small telescope.",
     "tags": ["comet", "tempel_2", "binoculars_or_telescope"]
   },
+  
   {
-  "id": "test-comet-howell-1910",
+  "id": "test-comet-howell-1600",
   "type": "comet",
-  "title": "🚀 TEST Comet Howell – 19:10",
+  "title": "🚀 TEST Comet Howell – 16:00",
   "event_window": {
-    "start": "2026-03-01T19:10:00Z",
-    "end": "2026-03-01T19:30:00Z"
+    "start": "2026-03-02T16:00:00Z",
+    "end": "2026-03-02T16:20:00Z"
   },
-  "start": "2026-03-01T19:10:00Z",
-  "end": "2026-03-01T19:30:00Z",
+  "start": "2026-03-02T16:00:00Z",
+  "end": "2026-03-02T16:20:00Z",
   "is_all_day": false,
   "equipment": "telescope",
   "visibility": "global",
   "visibility_model": "geometric",
   "confidence": "high",
   "source": "Internal test",
-  "description": "Push test – should fire at 18:10 UK (1h before).",
+  "description": "Push test – should fire at 15:00 UK (1h before).",
   "tags": ["test", "push_test"]
 },
 {
-  "id": "test-comet-atlas-1915",
+  "id": "test-comet-atlas-1630",
   "type": "comet",
-  "title": "🚀 TEST Comet Atlas – 19:15",
+  "title": "🚀 TEST Comet Atlas – 16:30",
   "event_window": {
-    "start": "2026-03-01T19:15:00Z",
-    "end": "2026-03-01T19:35:00Z"
+    "start": "2026-03-02T16:30:00Z",
+    "end": "2026-03-02T16:50:00Z"
   },
-  "start": "2026-03-01T19:15:00Z",
-  "end": "2026-03-01T19:35:00Z",
+  "start": "2026-03-02T16:30:00Z",
+  "end": "2026-03-02T16:50:00Z",
   "is_all_day": false,
   "equipment": "telescope",
   "visibility": "global",
   "visibility_model": "geometric",
   "confidence": "high",
   "source": "Internal test",
-  "description": "Push test – should fire at 18:15 UK (1h before).",
+  "description": "Push test – should fire at 15:30 UK (1h before).",
   "tags": ["test", "push_test"]
 }
+
 ]
