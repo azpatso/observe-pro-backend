@@ -1268,21 +1268,27 @@ def test_push():
 def add_user_event():
     data = request.get_json() or {}
     user_id = data.get("userId")
-    event = data.get("event")
+    event = data.get("event") or {}
 
     if not user_id or not event:
         return jsonify({"success": False, "error": "Missing data"}), 400
 
-    sb_post(
-        "user_events",
-        {
-            "user_id": user_id,
-            "event_id": event.get("id"),
-            "type": event.get("type"),
-            "title": event.get("title"),
-            "start": event.get("start"),
-        },
-    )
+    # Make sure we always store an event_id
+    event_id = event.get("event_id") or event.get("id")
+    if not event_id:
+        return jsonify({"success": False, "error": "Missing event.id"}), 400
+
+    row = {
+        "user_id": user_id,
+        "event_id": event_id,
+        "type": event.get("type"),
+        "title": event.get("title"),
+        "start": event.get("start"),
+        # ✅ NEW: store the full event snapshot for sharing/cards
+        "event_json": event,
+    }
+
+    sb_post("user_events", row)
 
     return jsonify({"success": True})
 
