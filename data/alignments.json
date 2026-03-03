@@ -165,18 +165,33 @@
   "tags": ["test"]
 },
 {
-  "id": "align-test-1705",
+  "id": "align-test-1805",
   "type": "alignment",
-  "title": "🚨 TEST EVENT 17:05",
-  "start": "2026-03-02T17:05:00Z",
-  "end": "2026-03-02T17:25:00Z",
+  "title": "🚨 TEST EVENT 18:05",
+  "start": "2026-03-03T18:05:00Z",
+  "end": "2026-03-03T18:25:00Z",
   "is_all_day": false,
   "equipment": "naked_eye",
   "visibility": "global",
   "visibility_model": "geometric",
   "confidence": "high",
   "source": "Internal Test",
-  "description": "Push test alignment event at 17:05 UK (1h reminder should fire at 16:05 UK).",
+  "description": "Push test alignment event at 18:05 UK (1h reminder should fire at 17:05 UK).",
+  "tags": ["test", "push_test"]
+},
+{
+  "id": "align-test-1820",
+  "type": "alignment",
+  "title": "🚨 TEST EVENT 18:20",
+  "start": "2026-03-03T18:20:00Z",
+  "end": "2026-03-03T18:40:00Z",
+  "is_all_day": false,
+  "equipment": "naked_eye",
+  "visibility": "global",
+  "visibility_model": "geometric",
+  "confidence": "high",
+  "source": "Internal Test",
+  "description": "Push test alignment event at 18:20 UK (1h reminder should fire at 17:20 UK).",
   "tags": ["test", "push_test"]
 }
 ]
