@@ -165,33 +165,33 @@
   "tags": ["test"]
 },
 {
-  "id": "align-test-1805",
+  "id": "align-test-1240",
   "type": "alignment",
-  "title": "🚨 TEST EVENT 18:05",
-  "start": "2026-03-03T18:05:00Z",
-  "end": "2026-03-03T18:25:00Z",
+  "title": "🚨 TEST EVENT 12:40",
+  "start": "2026-03-04T12:40:00Z",
+  "end": "2026-03-04T13:00:00Z",
   "is_all_day": false,
   "equipment": "naked_eye",
   "visibility": "global",
   "visibility_model": "geometric",
   "confidence": "high",
   "source": "Internal Test",
-  "description": "Push test alignment event at 18:05 UK (1h reminder should fire at 17:05 UK).",
+  "description": "Push test alignment event at 12:40 UK (1h reminder should fire at 11:40 UK).",
   "tags": ["test", "push_test"]
 },
 {
-  "id": "align-test-1820",
+  "id": "align-test-1250",
   "type": "alignment",
-  "title": "🚨 TEST EVENT 18:20",
-  "start": "2026-03-03T18:20:00Z",
-  "end": "2026-03-03T18:40:00Z",
+  "title": "🚨 TEST EVENT 12:50",
+  "start": "2026-03-04T12:50:00Z",
+  "end": "2026-03-04T13:10:00Z",
   "is_all_day": false,
   "equipment": "naked_eye",
   "visibility": "global",
   "visibility_model": "geometric",
   "confidence": "high",
   "source": "Internal Test",
-  "description": "Push test alignment event at 18:20 UK (1h reminder should fire at 17:20 UK).",
+  "description": "Push test alignment event at 12:50 UK (1h reminder should fire at 11:50 UK).",
   "tags": ["test", "push_test"]
 }
 ]
