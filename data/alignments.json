@@ -149,19 +149,35 @@
     "description": "A slender crescent Moon appears beside dazzling Venus in the evening sky. This elegant pairing is easy to spot with the naked eye and is often considered one of the most beautiful celestial sights of the year.",
     "tags": ["moon", "venus", "evening", "romantic", "naked_eye"]
   },
- {
-  "id": "align-test-1350",
+{
+  "id": "align-test-1950",
   "type": "alignment",
-  "title": "🚨 TEST EVENT 13:50",
-  "start": "2026-03-04T13:50:00Z",
-  "end": "2026-03-04T14:10:00Z",
+  "title": "🚨 TEST EVENT 19:50",
+  "start": "2026-03-04T19:50:00Z",
+  "end": "2026-03-04T20:10:00Z",
   "is_all_day": false,
   "equipment": "naked_eye",
   "visibility": "global",
   "visibility_model": "geometric",
   "confidence": "high",
   "source": "Internal Test",
-  "description": "Push test alignment event at 13:50 UK (1h reminder should fire at 12:50 UK).",
+  "description": "Push test alignment event at 19:50 UK (1h reminder should fire at 18:50 UK).",
   "tags": ["test", "push_test"]
+},
+{
+  "id": "align-test-1900-24h",
+  "type": "alignment",
+  "title": "🚨 TEST EVENT 19:00 (24h test)",
+  "start": "2026-03-05T19:00:00Z",
+  "end": "2026-03-05T19:20:00Z",
+  "is_all_day": false,
+  "equipment": "naked_eye",
+  "visibility": "global",
+  "visibility_model": "geometric",
+  "confidence": "high",
+  "source": "Internal Test",
+  "description": "24h push test for alignment at 19:00 UK (24h reminder should fire on 2026-03-04 at 19:00 UK; 1h reminder should fire at 18:00 UK on event day).",
+  "tags": ["test", "push_test", "push_24h_test"]
 }
+
 ]
