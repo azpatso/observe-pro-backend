@@ -14,12 +14,15 @@ CORS(auth_bp)
 
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
 
+
 def send_verification_email(to_email, token):
     if not RESEND_API_KEY:
         print("RESEND_API_KEY not set")
         return
 
-    verify_url = f"https://observe-pro-backend.onrender.com/api/auth/verify-email?token={token}"
+    verify_url = (
+        f"https://observe-pro-backend.onrender.com/api/auth/verify-email?token={token}"
+    )
 
     html_content = f"""
     <!DOCTYPE html>
@@ -95,6 +98,8 @@ def send_verification_email(to_email, token):
 
     except Exception as e:
         print("Email send failed:", e)
+
+
 # ============================================================
 # Supabase REST Setup
 # ============================================================
@@ -106,28 +111,25 @@ HEADERS = {
     "apikey": SUPABASE_KEY,
     "Authorization": f"Bearer {SUPABASE_KEY}",
     "Content-Type": "application/json",
-    "Prefer": "return=representation"
+    "Prefer": "return=representation",
 }
+
 
 def sb_get(table, params=None):
     r = requests.get(
-        f"{SUPABASE_URL}/rest/v1/{table}",
-        headers=HEADERS,
-        params=params,
-        timeout=10
+        f"{SUPABASE_URL}/rest/v1/{table}", headers=HEADERS, params=params, timeout=10
     )
     r.raise_for_status()
     return r.json()
 
+
 def sb_post(table, data):
     r = requests.post(
-        f"{SUPABASE_URL}/rest/v1/{table}",
-        headers=HEADERS,
-        json=data,
-        timeout=10
+        f"{SUPABASE_URL}/rest/v1/{table}", headers=HEADERS, json=data, timeout=10
     )
     r.raise_for_status()
     return r.json()
+
 
 def sb_patch(table, filters, data):
     r = requests.patch(
@@ -135,17 +137,15 @@ def sb_patch(table, filters, data):
         headers=HEADERS,
         params=filters,
         json=data,
-        timeout=10
+        timeout=10,
     )
     r.raise_for_status()
     return r.json()
 
+
 def sb_delete(table, filters):
     r = requests.delete(
-        f"{SUPABASE_URL}/rest/v1/{table}",
-        headers=HEADERS,
-        params=filters,
-        timeout=10
+        f"{SUPABASE_URL}/rest/v1/{table}", headers=HEADERS, params=filters, timeout=10
     )
     r.raise_for_status()
     return r.json()
@@ -159,12 +159,11 @@ GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
 GOOGLE_REDIRECT_URI = os.environ.get(
     "GOOGLE_REDIRECT_URI",
-    "https://observe-pro-backend.onrender.com/api/auth/google/callback"
+    "https://observe-pro-backend.onrender.com/api/auth/google/callback",
 )
 
 FRONTEND_COMPLETE_URL = os.environ.get(
-    "FRONTEND_COMPLETE_URL",
-    "https://your-frontend-domain.com/google-complete"
+    "FRONTEND_COMPLETE_URL", "https://your-frontend-domain.com/google-complete"
 )
 
 TERMS_VERSION = "1.0"
@@ -174,6 +173,7 @@ PRIVACY_VERSION = "1.0"
 # ============================================================
 # REGISTER
 # ============================================================
+
 
 @auth_bp.route("/register", methods=["POST"])
 def register():
@@ -186,8 +186,6 @@ def register():
     terms_accepted_at = data.get("termsAcceptedAt")
     timezone = data.get("timezone") or "UTC"
 
-
-
     if not email or "@" not in email:
         return jsonify({"error": "Valid email is required"}), 400
 
@@ -195,7 +193,10 @@ def register():
         return jsonify({"error": "Password must be at least 6 characters"}), 400
 
     if not any(c.isupper() for c in password):
-        return jsonify({"error": "Password must contain at least one uppercase letter"}), 400
+        return (
+            jsonify({"error": "Password must contain at least one uppercase letter"}),
+            400,
+        )
 
     if not city or len(city) < 2:
         return jsonify({"error": "City is required"}), 400
@@ -217,33 +218,42 @@ def register():
 
     expires_at = datetime.utcnow() + timedelta(hours=24)
 
-    sb_post("users", {
-        "id": user_id,
-        "email": email,
-        "password_hash": generate_password_hash(password),
-        "auth_provider": "local",
-        "city": city,
-        "country": country,
-        "timezone": timezone,
-        "created_at": datetime.utcnow().isoformat() + "Z",
-        "terms_accepted_at": terms_accepted_at,
-        "terms_version": TERMS_VERSION,
-        "privacy_version": PRIVACY_VERSION,
-        "profile_complete": True,
-        "email_verified": False,
-        "email_verification_token": verification_token,
-        "email_verification_expires_at": expires_at.isoformat() + "Z"
-    })
+    sb_post(
+        "users",
+        {
+            "id": user_id,
+            "email": email,
+            "password_hash": generate_password_hash(password),
+            "auth_provider": "local",
+            "city": city,
+            "country": country,
+            "timezone": timezone,
+            "created_at": datetime.utcnow().isoformat() + "Z",
+            "terms_accepted_at": terms_accepted_at,
+            "terms_version": TERMS_VERSION,
+            "privacy_version": PRIVACY_VERSION,
+            "profile_complete": True,
+            "email_verified": False,
+            "email_verification_token": verification_token,
+            "email_verification_expires_at": expires_at.isoformat() + "Z",
+        },
+    )
 
     send_verification_email(email, verification_token)
-    return jsonify({
-        "message": "Account created. Please check your email to verify your account."
-    }), 201
+    return (
+        jsonify(
+            {
+                "message": "Account created. Please check your email to verify your account."
+            }
+        ),
+        201,
+    )
 
 
 # ============================================================
 # LOGIN
 # ============================================================
+
 
 @auth_bp.route("/login", methods=["POST"])
 def login():
@@ -263,7 +273,7 @@ def login():
 
     if user.get("auth_provider") == "google":
         return jsonify({"error": "Use Google login for this account"}), 401
-    
+
     if not user.get("email_verified"):
         return jsonify({"error": "Please verify your email before logging in."}), 403
 
@@ -271,22 +281,25 @@ def login():
         return jsonify({"error": "Invalid email or password"}), 401
 
     needs_reconsent = (
-        user.get("terms_version") != TERMS_VERSION or
-        user.get("privacy_version") != PRIVACY_VERSION
+        user.get("terms_version") != TERMS_VERSION
+        or user.get("privacy_version") != PRIVACY_VERSION
     )
 
-    return jsonify({
-        "id": user["id"],
-        "email": user["email"],
-        "city": user.get("city", ""),
-        "country": user.get("country", ""),
-        "needsReconsent": needs_reconsent
-    })
+    return jsonify(
+        {
+            "id": user["id"],
+            "email": user["email"],
+            "city": user.get("city", ""),
+            "country": user.get("country", ""),
+            "needsReconsent": needs_reconsent,
+        }
+    )
 
 
 # ============================================================
 # GOOGLE START
 # ============================================================
+
 
 @auth_bp.route("/google/start")
 def google_start():
@@ -304,6 +317,7 @@ def google_start():
 # ============================================================
 # GOOGLE CALLBACK
 # ============================================================
+
 
 @auth_bp.route("/google/callback")
 def google_callback():
@@ -347,41 +361,36 @@ def google_callback():
     if not user:
         user_id = str(uuid.uuid4())
 
-        sb_post("users", {
-            "id": user_id,
-            "email": email,
-            "google_id": google_id,
-            "auth_provider": "google",
-            "created_at": datetime.utcnow().isoformat() + "Z",
-            "profile_complete": False,
-            "email_verified": True,
-            "email_verification_token": None
-        })
+        sb_post(
+            "users",
+            {
+                "id": user_id,
+                "email": email,
+                "google_id": google_id,
+                "auth_provider": "google",
+                "created_at": datetime.utcnow().isoformat() + "Z",
+                "profile_complete": False,
+                "email_verified": True,
+                "email_verification_token": None,
+            },
+        )
 
         profile_complete = False
     else:
         user_id = user["id"]
         profile_complete = user.get("profile_complete", False)
 
-    payload = {
-        "id": user_id,
-        "email": email,
-        "profileComplete": profile_complete
-    }
+    payload = {"id": user_id, "email": email, "profileComplete": profile_complete}
 
-    encoded = base64.urlsafe_b64encode(
-        json.dumps(payload).encode()
-    ).decode()
+    encoded = base64.urlsafe_b64encode(json.dumps(payload).encode()).decode()
 
     return redirect(f"com.observepro.space://auth?p={encoded}")
-
-    
-
 
 
 # ============================================================
 # COMPLETE PROFILE
 # ============================================================
+
 
 @auth_bp.route("/complete-profile", methods=["POST"])
 def complete_profile():
@@ -394,8 +403,6 @@ def complete_profile():
     lon = data.get("lon")
     timezone = data.get("timezone") or "UTC"
 
-
-
     if not user_id:
         return jsonify({"success": False, "error": "Missing userId"}), 400
 
@@ -403,23 +410,26 @@ def complete_profile():
         return jsonify({"success": False, "error": "City and country required"}), 400
 
     if lat is None or lon is None:
-        return jsonify({"success": False, "error": "Latitude and longitude required"}), 400
+        return (
+            jsonify({"success": False, "error": "Latitude and longitude required"}),
+            400,
+        )
 
     sb_patch(
         "users",
         {"id": f"eq.{user_id}"},
         {
-             "city": city,
-             "country": country,
-             "lat": float(lat),
-             "lon": float(lon),
-             "timezone": timezone,
-             "profile_complete": True
-        }
+            "city": city,
+            "country": country,
+            "lat": float(lat),
+            "lon": float(lon),
+            "timezone": timezone,
+            "profile_complete": True,
+        },
     )
 
-
     return jsonify({"success": True})
+
 
 @auth_bp.route("/verify-email")
 def verify_email():
@@ -428,12 +438,7 @@ def verify_email():
     if not token:
         return "Invalid verification link", 400
 
-    users = sb_get(
-        "users",
-        {
-            "email_verification_token": f"eq.{token}"
-        }
-    )
+    users = sb_get("users", {"email_verification_token": f"eq.{token}"})
 
     if not users:
         return "Invalid or expired verification link", 400
@@ -448,9 +453,7 @@ def verify_email():
     if expires_at:
         try:
             # Handle both Z and +00:00 formats safely
-            exp = datetime.fromisoformat(
-                expires_at.replace("Z", "+00:00")
-            )
+            exp = datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
 
             if datetime.now(timezone.utc) > exp:
                 return "Verification link has expired. Please request a new one.", 400
@@ -465,18 +468,85 @@ def verify_email():
         {
             "email_verified": True,
             "email_verification_token": None,
-            "email_verification_expires_at": None
-        }
+            "email_verification_expires_at": None,
+        },
     )
 
     return """
-    <h2>Email verified successfully ✅</h2>
-    <p>You can now return to the Observe Pro app and log in.</p>
-    """
+<!doctype html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Observe PRO — Verified</title>
+  <style>
+    body{
+      margin:0;
+      font-family: system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+      background: #050b1e;
+      color:#e6ecff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:100vh;
+      padding:24px;
+      text-align:center;
+    }
+    .card{
+      max-width:520px;
+      width:100%;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 18px;
+      padding: 28px 22px;
+      box-shadow: 0 18px 60px rgba(0,0,0,0.5);
+    }
+    h1{
+      margin:0 0 12px;
+      font-size: 30px;
+      line-height:1.2;
+      font-weight:800;
+    }
+    p{
+      margin:0;
+      font-size: 16px;
+      opacity:0.9;
+      line-height:1.5;
+    }
+    .btn{
+      display:inline-block;
+      margin-top:18px;
+      padding:14px 18px;
+      border-radius:14px;
+      background: linear-gradient(135deg,#238636,#2ea043);
+      color:white;
+      text-decoration:none;
+      font-weight:700;
+      font-size:16px;
+    }
+    .small{
+      margin-top:12px;
+      font-size:13px;
+      opacity:0.7;
+      line-height:1.4;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Email verified ✅</h1>
+    <p>You can now return to the Observe PRO app and sign in.</p>
+    <a class="btn" href="com.observepro.space://auth">Open Observe PRO</a>
+    <div class="small">If the app doesn’t open, return to it manually.</div>
+  </div>
+</body>
+</html>
+"""
+
 
 # ============================================================
 # DELETE ACCOUNT
 # ============================================================
+
 
 @auth_bp.route("/delete-account", methods=["DELETE"])
 def delete_account():
@@ -488,8 +558,4 @@ def delete_account():
 
     sb_delete("users", {"id": f"eq.{user_id}"})
 
-    return jsonify({
-        "success": True,
-        "message": "Account deleted permanently"
-    })
-
+    return jsonify({"success": True, "message": "Account deleted permanently"})
