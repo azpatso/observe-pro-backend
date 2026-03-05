@@ -88,9 +88,11 @@ def send_push(user_id, title, body, data=None):
             message = messaging.Message(
                 notification=messaging.Notification(title=title, body=body),
                 data={k: str(v) for k, v in (data or {}).items()},
+                android=messaging.AndroidConfig(
+                    priority="high",
+                ),
                 token=token,
             )
-
             messaging.send(message)
 
         except messaging.UnregisteredError:

@@ -465,11 +465,11 @@
   },
   
   {
-  "id": "align-test-2026-03-05-2030",
+  "id": "align-test-2026-03-05-2100",
   "type": "alignment",
-  "title": "🚨 TEST Alignment – 20:30",
-  "start": "2026-03-05T20:30:00Z",
-  "end": "2026-03-05T20:50:00Z",
+  "title": "🚨 TEST Alignment – 21:00",
+  "start": "2026-03-05T21:00:00Z",
+  "end": "2026-03-05T21:20:00Z",
   "is_all_day": false,
   "equipment": "naked_eye",
   "visibility": "global",
@@ -477,7 +477,7 @@
   "confidence": "high",
   "source": "Internal Test",
   "visible_in": "Test event",
-  "description": "Push test alignment event at 20:30 UK (1h reminder should fire at 19:30 UK; 24h reminder should fire at 2026-03-04 20:30 UK).",
+  "description": "Push test alignment event at 21:00 UK (1h reminder should fire at 20:00 UK; 24h reminder should fire at 2026-03-04 21:00 UK).",
   "tags": ["test", "push_test"]
 }
 
