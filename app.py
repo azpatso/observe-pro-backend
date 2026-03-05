@@ -615,15 +615,28 @@ def get_meteor_events():
     for m in METEOR_RAW:
         events.append(
             {
-                "id": m["id"],
+                "id": m.get("id"),
                 "type": "meteor",
-                "title": m["title"],  # 👈 use original title
-                "start": m["start"],
-                "end": m["end"],
+                "title": m.get("title"),
+                "start": m.get("start"),
+                "end": m.get("end"),
+                "event_window": m.get("event_window"),
+                "peak_date": m.get("peak_date"),
+                "peak_nights": m.get("peak_nights"),
+                "best_observation_date": m.get("best_observation_date"),
+                "best_time_window": m.get("best_time_window"),
+                "is_all_day": m.get("is_all_day", False),
+                "equipment": m.get("equipment", "naked_eye"),
                 "visibility": m.get("visibility", "global"),
+                "visibility_model": m.get("visibility_model"),
                 "confidence": m.get("confidence"),
                 "source": m.get("source"),
-                "description": m.get("description"),  # 👈 THIS WAS MISSING
+                "visible_in": m.get("visible_in"),
+                "moonlight": m.get("moonlight"),
+                "moonlight_note": m.get("moonlight_note"),
+                "zhr": m.get("zhr"),
+                "parent_body": m.get("parent_body"),
+                "description": m.get("description"),
                 "tags": m.get("tags", []),
             }
         )
