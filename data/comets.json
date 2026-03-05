@@ -2,85 +2,58 @@
   {
     "id": "comet-c2024-e1-wierzchos-2026",
     "type": "comet",
-    "title": "Comet C/2024 E1 (Wierzchos)",
+    "title": "Comet C/2024 E1 (Wierzchoś) — fading tail end",
     "event_window": {
-      "start": "2026-01-01T00:00:00Z",
-      "end": "2026-02-20T23:59:59Z"
+      "start": "2026-03-04T00:00:00Z",
+      "end": "2026-03-31T23:59:59Z"
     },
-    "start": "2026-01-01T00:00:00Z",
-    "end": "2026-02-20T23:59:59Z",
+    "start": "2026-03-04T00:00:00Z",
+    "end": "2026-03-31T23:59:59Z",
     "is_all_day": true,
-    "equipment": "telescope",
-    "visibility": "global",
+    "equipment": "binoculars_or_telescope",
+    "visibility": "southern_hemisphere_favored",
     "visibility_model": "geometric",
     "confidence": "medium",
-    "source": "Astronomical predictions",
-    "best_observation_date": "2026-01-28T00:00:00Z",
-    "peak": {
-      "start": "2026-01-20T00:00:00Z",
-      "end": "2026-02-05T23:59:59Z"
-    },
-    "closest_approach": "2026-02-17",
-    "description": "Best in late January. Expected magnitude around 8; too faint for naked eye, but a good binocular target under dark skies.",
-    "tags": ["comet", "wierzchos", "telescope_required"]
+    "source": "EarthSky / ephemeris-based guides",
+    "visible_in": "Best seen from: Southern Hemisphere and low latitudes (higher altitude). Northern observers may have a low, short window near dusk/dawn.",
+    "difficulty": "moderate",
+    "best_observation_date": "2026-03-10T00:00:00Z",
+    "description": "A previously brighter comet now fading through March 2026. Expect a diffuse binocular/small-telescope target rather than a showpiece. Dark skies help a lot; scan near the predicted position with wide-field views.",
+    "tags": ["comet", "wierzchos", "southern_favored", "binoculars_or_telescope"]
   },
 
   {
-    "id": "comet-24p-schaumasse-2026",
+    "id": "comet-c2026-a1-maps-2026",
     "type": "comet",
-    "title": "Comet 24P/Schaumasse",
+    "title": "Comet C/2026 A1 (MAPS) — Kreutz sungrazer",
     "event_window": {
-      "start": "2026-01-01T00:00:00Z",
-      "end": "2026-02-15T23:59:59Z"
-    },
-    "start": "2026-01-01T00:00:00Z",
-    "end": "2026-02-15T23:59:59Z",
-    "is_all_day": true,
-    "equipment": "telescope",
-    "visibility": "global",
-    "visibility_model": "geometric",
-    "confidence": "medium",
-    "source": "Astronomical predictions",
-    "best_observation_date": "2026-01-04T00:00:00Z",
-    "peak": {
-      "start": "2026-01-03T00:00:00Z",
-      "end": "2026-01-12T23:59:59Z"
-    },
-    "closest_approach": "2026-01-04",
-    "description": "A faint periodic comet peaking in early January. Expected around magnitude 10, requiring a small telescope or smart telescope.",
-    "tags": ["comet", "schaumasse", "telescope_required"]
-  },
-
-  {
-    "id": "comet-88p-howell-2026",
-    "type": "comet",
-    "title": "Comet 88P/Howell",
-    "event_window": {
-      "start": "2026-02-01T00:00:00Z",
+      "start": "2026-03-25T00:00:00Z",
       "end": "2026-04-10T23:59:59Z"
     },
-    "start": "2026-02-01T00:00:00Z",
+    "start": "2026-03-25T00:00:00Z",
     "end": "2026-04-10T23:59:59Z",
     "is_all_day": true,
     "equipment": "telescope",
     "visibility": "global",
     "visibility_model": "geometric",
-    "confidence": "medium",
-    "source": "Astronomical predictions",
-    "best_observation_date": "2026-03-15T00:00:00Z",
+    "confidence": "low",
+    "source": "COBS / MPC elements",
+    "visible_in": "Near the Sun at peak: safest tracking is via solar coronagraphs/remote imaging. Any twilight visibility is highly geometry-dependent and may be impractical for visual observing.",
+    "difficulty": "very_hard",
+    "best_observation_date": "2026-04-04T14:20:58Z",
     "peak": {
-      "start": "2026-03-01T00:00:00Z",
-      "end": "2026-03-25T23:59:59Z"
+      "start": "2026-04-03T00:00:00Z",
+      "end": "2026-04-05T23:59:59Z"
     },
-    "closest_approach": "2026-03-15",
-    "description": "Gradual brightening through March. Remains faint and best suited for telescope observers.",
-    "tags": ["comet", "howell", "telescope_required"]
+    "closest_approach": "2026-04-05T00:00:00Z",
+    "description": "A high-risk sungrazing comet with extreme uncertainty: it may brighten dramatically or disintegrate. Peak geometry is extremely close to the Sun, making safe visual observing unlikely. Do NOT search with optics near the Sun—use trusted charts and only attempt when the Sun is fully below the horizon.",
+    "tags": ["comet", "sungrazer", "near_sun", "twilight_challenging", "very_low_horizon", "hard_to_observe"]
   },
 
   {
     "id": "comet-c2025-r3-panstarrs-2026",
     "type": "comet",
-    "title": "Comet C/2025 R3 (PanSTARRS)",
+    "title": "Comet C/2025 R3 (PanSTARRS) — twilight wildcard",
     "event_window": {
       "start": "2026-03-25T00:00:00Z",
       "end": "2026-05-10T23:59:59Z"
@@ -92,36 +65,17 @@
     "visibility": "global",
     "visibility_model": "geometric",
     "confidence": "medium",
-    "source": "Astronomical predictions",
+    "source": "COBS / ephemeris-based guides",
+    "visible_in": "Twilight-limited: pre-perihelion tends to favor Northern Hemisphere pre-dawn; post-perihelion tends to favor Southern Hemisphere evening twilight. Clear, unobstructed horizons are critical.",
+    "difficulty": "hard",
     "best_observation_date": "2026-04-26T00:00:00Z",
     "peak": {
       "start": "2026-04-15T00:00:00Z",
       "end": "2026-05-01T23:59:59Z"
     },
-    "closest_approach": "2026-04-26",
-    "description": "The wildcard comet of 2026. Brightness predictions vary widely; binoculars are strongly recommended, with naked-eye visibility possible if it brightens significantly.",
-    "tags": ["comet", "panstarrs", "naked_eye_possible", "binoculars_likely"]
-  },
-
-  {
-    "id": "comet-3i-atlas-2026",
-    "type": "comet",
-    "title": "Interstellar Comet 3I/ATLAS",
-    "event_window": {
-      "start": "2026-01-01T00:00:00Z",
-      "end": "2026-12-31T23:59:59Z"
-    },
-    "start": "2026-01-01T00:00:00Z",
-    "end": "2026-12-31T23:59:59Z",
-    "is_all_day": true,
-    "equipment": "telescope",
-    "visibility": "global",
-    "visibility_model": "geometric",
-    "confidence": "high",
-    "source": "Astronomical observations",
-    "best_observation_date": "2026-06-01T00:00:00Z",
-    "description": "An interstellar object passing through the Solar System in 2026. Observed around magnitude 11–12, making it a telescope-only target. Of high scientific interest.",
-    "tags": ["comet", "interstellar", "atlas", "telescope_required"]
+    "closest_approach": "2026-04-26T00:00:00Z",
+    "description": "A high-interest comet with a wide brightness range (binocular to possibly naked-eye) depending on activity and geometry. The catch: it sits low in bright twilight near its best dates. Use binoculars as a baseline and plan for very clear horizons and short observing windows.",
+    "tags": ["comet", "panstarrs", "naked_eye_possible", "binoculars_likely", "twilight_challenging", "very_low_horizon"]
   },
 
   {
@@ -135,39 +89,124 @@
     "start": "2026-07-01T00:00:00Z",
     "end": "2026-09-01T23:59:59Z",
     "is_all_day": true,
+    "equipment": "binoculars_or_telescope",
+    "visibility": "southern_hemisphere_favored",
+    "visibility_model": "geometric",
+    "confidence": "high",
+    "source": "COBS / In-The-Sky.org",
+    "visible_in": "Best seen from: Southern Hemisphere mid-latitudes (higher culmination), but also observable from many low-latitude northern sites. Dark skies recommended.",
+    "difficulty": "moderate",
+    "best_observation_date": "2026-08-02T03:10:47Z",
+    "peak": {
+      "start": "2026-07-20T00:00:00Z",
+      "end": "2026-08-10T23:59:59Z"
+    },
+    "description": "A reliable periodic comet and one of the best ‘planned session’ targets of 2026. Typically binocular/small-telescope brightness under dark skies. Unlike twilight comets, geometry is favorable—wide-field views work well for the coma and faint tail.",
+    "tags": ["comet", "tempel_2", "binoculars_or_telescope", "southern_favored"]
+  },
+
+  {
+    "id": "comet-2p-encke-2027",
+    "type": "comet",
+    "title": "Comet 2P/Encke — difficult twilight return",
+    "event_window": {
+      "start": "2027-01-15T00:00:00Z",
+      "end": "2027-02-28T23:59:59Z"
+    },
+    "start": "2027-01-15T00:00:00Z",
+    "end": "2027-02-28T23:59:59Z",
+    "is_all_day": true,
     "equipment": "mixed",
-    "visibility": "global",
+    "visibility": "southern_hemisphere_favored",
     "visibility_model": "geometric",
     "confidence": "medium",
-    "source": "Astronomical predictions",
-    "best_observation_date": "2026-07-25T00:00:00Z",
+    "source": "COBS / In-The-Sky.org / comet prospect tables",
+    "visible_in": "Best chances from low latitudes with pristine horizons. Even if it brightens, it stays very close to the Sun—expect a short twilight window (or no safe visual window).",
+    "difficulty": "hard",
+    "best_observation_date": "2027-02-10T05:41:51Z",
     "peak": {
-      "start": "2026-07-15T00:00:00Z",
-      "end": "2026-08-15T23:59:59Z"
+      "start": "2027-02-01T00:00:00Z",
+      "end": "2027-02-15T23:59:59Z"
     },
-    "closest_approach": "2026-07-25",
-    "description": "A well-known periodic comet returning in summer 2026. Best observed in July and August with binoculars or a small telescope.",
-    "tags": ["comet", "tempel_2", "binoculars_or_telescope"]
+    "description": "A famous short-period comet that can brighten, but this return is strongly limited by small solar elongation. Treat it as an ephemeris-critical twilight target: clear horizon, short window, and avoid scanning anywhere near the Sun. Binoculars may work only under excellent conditions; a small telescope may be needed.",
+    "tags": ["comet", "encke", "twilight_challenging", "near_sun", "very_low_horizon", "hard_to_observe", "binoculars_or_telescope"]
   },
-  
- {
-  "id": "test-comet-single-1915",
-  "type": "comet",
-  "title": "🚀 TEST Comet Single – 19:15",
-  "event_window": {
-    "start": "2026-03-04T19:15:00Z",
-    "end": "2026-03-04T19:35:00Z"
-  },
-  "start": "2026-03-04T19:15:00Z",
-  "end": "2026-03-04T19:35:00Z",
-  "is_all_day": false,
-  "equipment": "telescope",
-  "visibility": "global",
-  "visibility_model": "geometric",
-  "confidence": "high",
-  "source": "Internal test",
-  "description": "Push test – should fire at 18:15 UK (1h before).",
-  "tags": ["test", "push_test"]
-}
 
+  {
+    "id": "comet-45p-honda-mrkos-pajdusakova-2027",
+    "type": "comet",
+    "title": "Comet 45P/Honda–Mrkos–Pajdušáková",
+    "event_window": {
+      "start": "2027-08-10T00:00:00Z",
+      "end": "2027-10-05T23:59:59Z"
+    },
+    "start": "2027-08-10T00:00:00Z",
+    "end": "2027-10-05T23:59:59Z",
+    "is_all_day": true,
+    "equipment": "binoculars_or_telescope",
+    "visibility": "northern_hemisphere_favored",
+    "visibility_model": "geometric",
+    "confidence": "medium",
+    "source": "COBS / In-The-Sky.org / comet prospect tables",
+    "visible_in": "Generally better for Northern Hemisphere mid-latitudes by declination. Often a morning/twilight object—best with dark skies and a clear horizon.",
+    "difficulty": "moderate",
+    "best_observation_date": "2027-08-31T17:28:53Z",
+    "peak": {
+      "start": "2027-08-25T00:00:00Z",
+      "end": "2027-09-05T23:59:59Z"
+    },
+    "description": "A periodic comet that may reach binocular range under good skies. Expect a faint, diffuse target—use wide fields and a dark site. Check an up-to-date finder chart close to the date since nightly placement can change quickly.",
+    "tags": ["comet", "45p", "binoculars_or_telescope", "northern_favored"]
+  },
+
+  {
+    "id": "comet-104p-kowal-2027",
+    "type": "comet",
+    "title": "Comet 104P/Kowal",
+    "event_window": {
+      "start": "2027-09-01T00:00:00Z",
+      "end": "2027-11-10T23:59:59Z"
+    },
+    "start": "2027-09-01T00:00:00Z",
+    "end": "2027-11-10T23:59:59Z",
+    "is_all_day": true,
+    "equipment": "telescope",
+    "visibility": "northern_hemisphere_favored",
+    "visibility_model": "geometric",
+    "confidence": "medium",
+    "source": "COBS / comet prospect tables",
+    "visible_in": "Mostly Northern Hemisphere friendly (positive declination) with a comfortable elongation—dark skies and aperture matter more than horizon timing.",
+    "difficulty": "moderate",
+    "best_observation_date": "2027-09-24T00:00:00Z",
+    "peak": {
+      "start": "2027-09-15T00:00:00Z",
+      "end": "2027-10-20T23:59:59Z"
+    },
+    "closest_approach": "2027-09-24T00:00:00Z",
+    "description": "A fainter periodic comet, typically a small-telescope target under dark skies. Unlike twilight comets, it’s not usually pinned to the Sun—so use a finder chart and wide-field eyepiece. Best results come from low light pollution and good transparency.",
+    "tags": ["comet", "104p", "telescope_required", "northern_favored"]
+  },
+
+  {
+    "id": "comet-29p-schwassmann-wachmann-monitoring-2026-2027",
+    "type": "comet",
+    "title": "Comet 29P/Schwassmann–Wachmann — outburst monitor",
+    "event_window": {
+      "start": "2026-03-04T00:00:00Z",
+      "end": "2027-12-31T23:59:59Z"
+    },
+    "start": "2026-03-04T00:00:00Z",
+    "end": "2027-12-31T23:59:59Z",
+    "is_all_day": true,
+    "equipment": "telescope",
+    "visibility": "global",
+    "visibility_model": "geometric",
+    "confidence": "low",
+    "source": "BAA monitoring notes / COBS",
+    "visible_in": "Accessible from both hemispheres when away from the Sun. Best treated as a ‘check occasionally’ target—outbursts are unpredictable.",
+    "difficulty": "hard",
+    "best_observation_date": "2026-06-01T00:00:00Z",
+    "description": "Usually faint, but known for sudden outbursts that can brighten it by multiple magnitudes. Not a guaranteed ‘date event’—more like a wildcard worth checking. A moderate telescope and dark skies are typically needed to catch it outside major outbursts.",
+    "tags": ["comet", "29p", "outburst_prone", "telescope_required", "monitoring_target"]
+  }
 ]
