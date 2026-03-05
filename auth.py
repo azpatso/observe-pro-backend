@@ -1,5 +1,5 @@
 from flask_cors import CORS
-from flask import Blueprint, request, jsonify, redirect
+
 from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
@@ -8,6 +8,7 @@ import base64
 import requests
 from urllib.parse import urlencode
 import json
+from flask import Blueprint, request, jsonify, redirect, Response
 
 auth_bp = Blueprint("auth", __name__)
 CORS(auth_bp)
@@ -185,6 +186,8 @@ def register():
     country = (data.get("country") or "").strip()
     terms_accepted_at = data.get("termsAcceptedAt")
     timezone = data.get("timezone") or "UTC"
+    lat = data.get("lat")
+    lon = data.get("lon")
 
     if not email or "@" not in email:
         return jsonify({"error": "Valid email is required"}), 400
@@ -207,6 +210,9 @@ def register():
     if not terms_accepted_at:
         return jsonify({"error": "You must accept the Terms and Privacy Policy"}), 400
 
+    if lat is None or lon is None:
+        return jsonify({"error": "Latitude and longitude are required"}), 400
+
     # Check duplicate
     existing = sb_get("users", {"email": f"eq.{email}"})
     if existing:
@@ -227,6 +233,8 @@ def register():
             "auth_provider": "local",
             "city": city,
             "country": country,
+            "lat": float(lat),
+            "lon": float(lon),
             "timezone": timezone,
             "created_at": datetime.utcnow().isoformat() + "Z",
             "terms_accepted_at": terms_accepted_at,
@@ -472,7 +480,7 @@ def verify_email():
         },
     )
 
-    return """
+    html = """
 <!doctype html>
 <html>
 <head>
@@ -541,6 +549,7 @@ def verify_email():
 </body>
 </html>
 """
+    return Response(html, mimetype="text/html")
 
 
 # ============================================================
