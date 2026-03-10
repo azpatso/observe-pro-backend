@@ -465,11 +465,11 @@
   },
   
   {
-  "id": "align-test-2026-03-05-2100",
+  "id": "align-test-2026-03-10-1710",
   "type": "alignment",
-  "title": "🚨 TEST Alignment – 21:00",
-  "start": "2026-03-05T21:00:00Z",
-  "end": "2026-03-05T21:20:00Z",
+  "title": "🚨 TEST Alignment – 17:10",
+  "start": "2026-03-10T17:10:00Z",
+  "end": "2026-03-10T17:30:00Z",
   "is_all_day": false,
   "equipment": "naked_eye",
   "visibility": "global",
@@ -477,7 +477,23 @@
   "confidence": "high",
   "source": "Internal Test",
   "visible_in": "Test event",
-  "description": "Push test alignment event at 21:00 UK (1h reminder should fire at 20:00 UK; 24h reminder should fire at 2026-03-04 21:00 UK).",
+  "description": "Push test alignment event at 17:10 UK on 10 March 2026.",
+  "tags": ["test", "push_test"]
+},
+{
+  "id": "align-test-2026-03-10-1745",
+  "type": "alignment",
+  "title": "🚨 TEST Alignment – 17:45",
+  "start": "2026-03-10T17:45:00Z",
+  "end": "2026-03-10T18:05:00Z",
+  "is_all_day": false,
+  "equipment": "naked_eye",
+  "visibility": "global",
+  "visibility_model": "geometric",
+  "confidence": "high",
+  "source": "Internal Test",
+  "visible_in": "Test event",
+  "description": "Push test alignment event at 17:45 UK on 10 March 2026.",
   "tags": ["test", "push_test"]
 }
 
