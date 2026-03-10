@@ -220,7 +220,7 @@ def aurora_notification_job():
                 {
                     "type": "eq.aurora",
                     "event_id": "eq.aurora-live",
-                    "select": "id,user_id,start,reminders_enabled,notified_4h_at,notified_1h_at,notified_30m_at,users(id,lat,lon,timezone)",
+                    "select": "id,user_id,start,reminders_enabled,notified_4h_at,notified_1h_at,users(id,lat,lon,timezone)",
                 },
             )
 
@@ -274,7 +274,7 @@ def aurora_notification_job():
                 new_start = peak_utc.isoformat().replace("+00:00", "Z")
                 old_start = row.get("start")
 
-                # If peak changed (or start missing), update start and reset notifications
+                # If peak changed (or start missing), update start and reset aurora push timestamps
                 if not old_start or str(old_start) != new_start:
                     sb_patch(
                         "user_events",
@@ -283,18 +283,25 @@ def aurora_notification_job():
                             "start": new_start,
                             "notified_4h_at": None,
                             "notified_1h_at": None,
-                            "notified_30m_at": None,
                         },
                     )
                     # Use updated "row" values for this tick
                     row["start"] = new_start
                     row["notified_4h_at"] = None
                     row["notified_1h_at"] = None
-                    row["notified_30m_at"] = None
+
+                four_h_before = peak_local - timedelta(hours=4)
+                one_h_before = peak_local - timedelta(hours=1)
+
+                # Do not send stale pushes after the peak has already passed
+                if now_local >= peak_local:
+                    continue
 
                 # --- 4 hours before peak ---
-                if row.get("notified_4h_at") is None and now_local >= (
-                    peak_local - timedelta(hours=4)
+                # Send only during the 4h -> 1h window
+                if (
+                    row.get("notified_4h_at") is None
+                    and four_h_before <= now_local < one_h_before
                 ):
                     send_push(
                         user_id,
@@ -313,8 +320,10 @@ def aurora_notification_job():
                     )
 
                 # --- 1 hour before peak ---
-                if row.get("notified_1h_at") is None and now_local >= (
-                    peak_local - timedelta(hours=1)
+                # Send only during the 1h -> peak window
+                elif (
+                    row.get("notified_1h_at") is None
+                    and one_h_before <= now_local < peak_local
                 ):
                     send_push(
                         user_id,
@@ -332,30 +341,10 @@ def aurora_notification_job():
                         {"notified_1h_at": _utc_now_iso()},
                     )
 
-                # --- optional: 30 minutes before peak ---
-                if row.get("notified_30m_at") is None and now_local >= (
-                    peak_local - timedelta(minutes=30)
-                ):
-                    send_push(
-                        user_id,
-                        "🌌 Aurora peak approaching",
-                        f"Peak in ~30 minutes (around {peak_local.strftime('%H:%M')}).",
-                        {
-                            "type": "aurora",
-                            "target": "my-sky",
-                            "eventId": "aurora-live",
-                        },
-                    )
-                    sb_patch(
-                        "user_events",
-                        {"id": f"eq.{row['id']}"},
-                        {"notified_30m_at": _utc_now_iso()},
-                    )
-
         except Exception as e:
             print("Aurora job error:", e)
 
-        time.sleep(60 * 60)  # every hour
+        time.sleep(5 * 60)  # every 5 minutes
 
 
 def scheduled_event_notification_job():
